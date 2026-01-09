@@ -64,4 +64,8 @@ public class ApartamentoModel {
     public void setActiva(Boolean activa) {
         this.activa = activa;
     }
+
+    public String toString() {
+        return "ApartamentoModel{id=" + id + ", edificio=" + (edificio != null ? edificio.getId() : null) + ", piso='" + piso + "', activa=" + activa + "}";
+    }
 }

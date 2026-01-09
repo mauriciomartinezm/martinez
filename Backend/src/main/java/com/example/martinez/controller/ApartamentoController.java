@@ -1,7 +1,11 @@
 package com.example.martinez.controller;
 
+import com.example.martinez.dto.ApartamentoActualizarRequest;
+import com.example.martinez.dto.ApartamentoCrearRequest;
 import com.example.martinez.models.ApartamentoModel;
+import com.example.martinez.models.EdificioModel;
 import com.example.martinez.service.ApartamentoService;
+import com.example.martinez.service.EdificioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +20,26 @@ import java.util.UUID;
 public class ApartamentoController {
 
     private final ApartamentoService apartamentoService;
+    private final EdificioService edificioService;
 
-    public ApartamentoController(ApartamentoService apartamentoService) {
+    public ApartamentoController(ApartamentoService apartamentoService, EdificioService edificioService) {
         this.apartamentoService = apartamentoService;
+        this.edificioService = edificioService;
     }
 
     @PostMapping
-    public ResponseEntity<ApartamentoModel> crear(@RequestBody ApartamentoModel apartamento) {
+    public ResponseEntity<ApartamentoModel> crear(@RequestBody ApartamentoCrearRequest request) {
+        if (request.getEdificioId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        Optional<EdificioModel> edificioOpt = edificioService.obtenerPorId(request.getEdificioId());
+        if (edificioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        ApartamentoModel apartamento = new ApartamentoModel();
+        apartamento.setEdificio(edificioOpt.get());
+        apartamento.setPiso(request.getPiso());
+        apartamento.setActiva(request.getActiva() == null ? Boolean.TRUE : request.getActiva());
         ApartamentoModel apartamentoGuardado = apartamentoService.guardar(apartamento);
         return ResponseEntity.status(HttpStatus.CREATED).body(apartamentoGuardado);
     }
@@ -59,17 +76,25 @@ public class ApartamentoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApartamentoModel> actualizar(@PathVariable UUID id, @RequestBody ApartamentoModel apartamentoActualizado) {
+    public ResponseEntity<ApartamentoModel> actualizar(@PathVariable UUID id, @RequestBody ApartamentoActualizarRequest request) {
         Optional<ApartamentoModel> apartamentoExistente = apartamentoService.obtenerPorId(id);
-        if (apartamentoExistente.isPresent()) {
-            ApartamentoModel apartamento = apartamentoExistente.get();
-            apartamento.setPiso(apartamentoActualizado.getPiso());
-            apartamento.setEdificio(apartamentoActualizado.getEdificio());
-            apartamento.setActiva(apartamentoActualizado.getActiva());
-            ApartamentoModel apartamentoGuardado = apartamentoService.guardar(apartamento);
-            return ResponseEntity.ok(apartamentoGuardado);
+        if (apartamentoExistente.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        ApartamentoModel apartamento = apartamentoExistente.get();
+        if (request.getEdificioId() != null) {
+            Optional<EdificioModel> edificioOpt = edificioService.obtenerPorId(request.getEdificioId());
+            if (edificioOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            apartamento.setEdificio(edificioOpt.get());
+        }
+        apartamento.setPiso(request.getPiso());
+        if (request.getActiva() != null) {
+            apartamento.setActiva(request.getActiva());
+        }
+        ApartamentoModel apartamentoGuardado = apartamentoService.guardar(apartamento);
+        return ResponseEntity.ok(apartamentoGuardado);
     }
 
     @PutMapping("/{id}/activar")
