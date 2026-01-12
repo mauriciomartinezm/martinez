@@ -10,21 +10,24 @@ class BuildingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edificios'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Edificios'), elevation: 0),
       body: controller.isLoading
           ? const Center(child: CircularProgressIndicator())
           : controller.buildings.isEmpty
-              ? const Center(child: Text('No hay edificios disponibles'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: controller.buildings.length,
-                  itemBuilder: (context, index) {
-                    return BuildingCard(building: controller.buildings[index]);
+          ? const Center(child: Text('No hay edificios disponibles'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: controller.buildings.length,
+              itemBuilder: (context, index) {
+                final building = controller.buildings[index];
+                return BuildingCard(
+                  building: building,
+                  onTap: () {
+                    controller.selectBuilding(building);
                   },
-                ),
+                );
+              },
+            ),
     );
   }
 }

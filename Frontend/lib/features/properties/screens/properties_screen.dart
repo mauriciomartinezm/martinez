@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/app_bottom_nav_bar.dart';
 import '../logic/properties_controller.dart';
+import 'apartment_detail_screen.dart';
+import 'apartments_screen.dart';
 import 'buildings_screen.dart';
 
 class PropertiesScreen extends StatefulWidget {
@@ -32,23 +35,9 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
       builder: (context, _) {
         return Scaffold(
           body: _buildScreen(controller.selectedTab),
-          bottomNavigationBar: BottomNavigationBar(
+          bottomNavigationBar: AppBottomNavBar(
             currentIndex: controller.selectedTab,
             onTap: controller.setTab,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Propiedades',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.people),
-                label: 'Arrendatarios',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.notifications),
-                label: 'Actualizaciones',
-              ),
-            ],
           ),
         );
       },
@@ -58,11 +47,21 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
+        // Navigate through property screens based on current state
+        if (controller.currentScreen == 'apartment_detail') {
+          return ApartmentDetailScreen(controller: controller);
+        } else if (controller.currentScreen == 'apartments') {
+          return ApartmentsScreen(controller: controller);
+        }
         return BuildingsScreen(controller: controller);
       case 1:
-        return const Center(child: Text('Arrendatarios'));
+        return const Center(child: Text('Listados'));
       case 2:
-        return const Center(child: Text('Actualizaciones'));
+        return const Center(child: Text('Agregar'));
+      case 3:
+        return const Center(child: Text('Buscar'));
+      case 4:
+        return const Center(child: Text('Perfil'));
       default:
         return const Center(child: Text('Pantalla desconocida'));
     }

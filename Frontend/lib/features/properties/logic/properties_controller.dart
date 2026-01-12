@@ -4,7 +4,7 @@ import 'building_service.dart';
 /// Controller for properties feature.
 class PropertiesController extends ChangeNotifier {
   PropertiesController({BuildingService? service})
-      : _service = service ?? const BuildingService();
+    : _service = service ?? const BuildingService();
 
   final BuildingService _service;
 
@@ -14,8 +14,21 @@ class PropertiesController extends ChangeNotifier {
   List<Building> _buildings = [];
   List<Building> get buildings => _buildings;
 
+  List<Apartment> _apartments = [];
+  List<Apartment> get apartments => _apartments;
+
+  Building? _selectedBuilding;
+  Building? get selectedBuilding => _selectedBuilding;
+
+  Apartment? _selectedApartment;
+  Apartment? get selectedApartment => _selectedApartment;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  // Screen navigation state: 'buildings', 'apartments', 'apartment_detail'
+  String _currentScreen = 'buildings';
+  String get currentScreen => _currentScreen;
 
   /// Load buildings from service.
   Future<void> loadBuildings() async {
@@ -24,9 +37,44 @@ class PropertiesController extends ChangeNotifier {
     _setLoading(false);
   }
 
+  /// Load apartments for a specific building.
+  Future<void> selectBuilding(Building building) async {
+    _selectedBuilding = building;
+    _setLoading(true);
+    _apartments = await _service.getApartmentsByBuilding(building.id);
+    _currentScreen = 'apartments';
+    _setLoading(false);
+  }
+
+  /// Select an apartment and show its details.
+  void selectApartment(Apartment apartment) {
+    _selectedApartment = apartment;
+    _currentScreen = 'apartment_detail';
+    notifyListeners();
+  }
+
+  /// Go back to apartments list.
+  void goBackToApartments() {
+    _currentScreen = 'apartments';
+    _selectedApartment = null;
+    notifyListeners();
+  }
+
+  /// Go back to buildings list.
+  void goBackToBuildings() {
+    _currentScreen = 'buildings';
+    _selectedBuilding = null;
+    _apartments = [];
+    _selectedApartment = null;
+    notifyListeners();
+  }
+
   /// Change the selected tab.
   void setTab(int index) {
     _selectedTab = index;
+    if (_currentScreen == 'apartments' || _currentScreen == 'apartment_detail') {
+      goBackToBuildings();
+    }
     notifyListeners();
   }
 
@@ -35,3 +83,4 @@ class PropertiesController extends ChangeNotifier {
     notifyListeners();
   }
 }
+
