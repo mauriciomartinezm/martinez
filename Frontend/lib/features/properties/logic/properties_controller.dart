@@ -72,7 +72,8 @@ class PropertiesController extends ChangeNotifier {
   /// Change the selected tab.
   void setTab(int index) {
     _selectedTab = index;
-    if (_currentScreen == 'apartments' || _currentScreen == 'apartment_detail') {
+    // Reset to buildings view when changing tabs
+    if (index != 1 && (_currentScreen == 'apartments' || _currentScreen == 'apartment_detail')) {
       goBackToBuildings();
     }
     notifyListeners();

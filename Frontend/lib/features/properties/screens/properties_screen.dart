@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/widgets/app_bottom_nav_bar.dart';
+import '../../dashboard/screens/dashboard_screen.dart';
 import '../logic/properties_controller.dart';
 import 'apartment_detail_screen.dart';
 import 'apartments_screen.dart';
@@ -47,15 +48,16 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
-        // Navigate through property screens based on current state
+        // Home/Dashboard
+        return const DashboardScreen();
+      case 1:
+        // Properties - navigate through buildings, apartments, and details
         if (controller.currentScreen == 'apartment_detail') {
           return ApartmentDetailScreen(controller: controller);
         } else if (controller.currentScreen == 'apartments') {
           return ApartmentsScreen(controller: controller);
         }
         return BuildingsScreen(controller: controller);
-      case 1:
-        return const Center(child: Text('Listados'));
       case 2:
         return const Center(child: Text('Agregar'));
       case 3:
