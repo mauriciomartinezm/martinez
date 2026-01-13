@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'building_service.dart';
+import '../models/building.dart';
+import '../models/apartment.dart';
+import '../services/api_service.dart';
 
 /// Controller for properties feature.
 class PropertiesController extends ChangeNotifier {
-  PropertiesController({BuildingService? service})
-    : _service = service ?? const BuildingService();
-
-  final BuildingService _service;
+  PropertiesController();
 
   int _selectedTab = 0;
   int get selectedTab => _selectedTab;
@@ -33,7 +32,11 @@ class PropertiesController extends ChangeNotifier {
   /// Load buildings from service.
   Future<void> loadBuildings() async {
     _setLoading(true);
-    _buildings = await _service.getBuildings();
+    try {
+      _buildings = await fetchBuildings();
+    } catch (e) {
+      _buildings = [];
+    }
     _setLoading(false);
   }
 
@@ -41,7 +44,13 @@ class PropertiesController extends ChangeNotifier {
   Future<void> selectBuilding(Building building) async {
     _selectedBuilding = building;
     _setLoading(true);
-    _apartments = await _service.getApartmentsByBuilding(building.id);
+    try {
+      // Fetch all apartments and filter by selected building
+      final all = await fetchApartments();
+      _apartments = all.where((apt) => apt.edificio.id == building.id).toList();
+    } catch (e) {
+      _apartments = [];
+    }
     _currentScreen = 'apartments';
     _setLoading(false);
   }

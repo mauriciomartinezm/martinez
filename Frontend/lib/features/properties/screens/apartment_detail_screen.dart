@@ -56,7 +56,8 @@ class ApartmentDetailScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
-                      apartment.address,
+                      //apartment.direccion,
+                      "Aqui va la direccion pero no es necesaria, revisar",
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
@@ -67,7 +68,7 @@ class ApartmentDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            
+            /*
             // Rent date info
             if (apartment.rentDate != null) ...[
               Container(
@@ -131,7 +132,7 @@ class ApartmentDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
             ],
-
+            */
             // Add rent button
             SizedBox(
               width: double.infinity,

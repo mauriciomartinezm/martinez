@@ -18,7 +18,7 @@ class ApartmentsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(building.name),
+        title: Text(building.nombre),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

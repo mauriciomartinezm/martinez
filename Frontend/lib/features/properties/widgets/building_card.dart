@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../logic/building_service.dart';
+import '../models/building.dart';
 
 class BuildingCard extends StatelessWidget {
   const BuildingCard({
@@ -36,7 +36,7 @@ class BuildingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      building.name,
+                      building.nombre,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -44,7 +44,7 @@ class BuildingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      building.address,
+                      building.direccion,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF6F6F6F),
@@ -52,7 +52,8 @@ class BuildingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      building.occupancy,
+                      //building.occupancy,
+                      "Revisar esto building ocuppancy",
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF6F6F6F),

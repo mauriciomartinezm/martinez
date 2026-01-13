@@ -55,7 +55,7 @@ class DashboardScreen extends StatelessWidget {
 
               // Summary title
               const Text(
-                'Resumen del mes',
+                'Resumen del último mes',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,

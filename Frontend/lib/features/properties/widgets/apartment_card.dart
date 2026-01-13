@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../logic/building_service.dart';
+import '../models/apartment.dart';
 
 class ApartmentCard extends StatelessWidget {
   const ApartmentCard({
@@ -13,7 +13,7 @@ class ApartmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOccupied = apartment.status == 'Ocupado';
+    final isActive = apartment.activa;
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -26,13 +26,13 @@ class ApartmentCard extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: isOccupied ? const Color(0xFFFFE0E0) : const Color(0xFFE0FFE0),
+                color: isActive ? const Color(0xFFE0FFE0) : const Color(0xFFFFE0E0),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                isOccupied ? Icons.lock : Icons.lock_open,
+                isActive ? Icons.lock_open : Icons.lock,
                 size: 28,
-                color: isOccupied ? const Color(0xFFD32F2F) : const Color(0xFF388E3C),
+                color: isActive ? const Color(0xFF388E3C) : const Color(0xFFD32F2F),
               ),
             ),
             const SizedBox(width: 16),
@@ -41,7 +41,7 @@ class ApartmentCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    apartment.unit,
+                    'Piso ${apartment.piso}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
@@ -49,7 +49,7 @@ class ApartmentCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    apartment.tenant,
+                    apartment.edificio.nombre,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF6F6F6F),
@@ -59,15 +59,15 @@ class ApartmentCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isOccupied ? const Color(0xFFFFE0E0) : const Color(0xFFE0FFE0),
+                      color: isActive ? const Color(0xFFE0FFE0) : const Color(0xFFFFE0E0),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      apartment.status,
+                      isActive ? 'Activa' : 'Inactiva',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: isOccupied ? const Color(0xFFD32F2F) : const Color(0xFF388E3C),
+                        color: isActive ? const Color(0xFF388E3C) : const Color(0xFFD32F2F),
                       ),
                     ),
                   ),
