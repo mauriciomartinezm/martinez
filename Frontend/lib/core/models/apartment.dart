@@ -16,4 +16,6 @@ class Apartment {
       piso: json['piso'],
     );
   }
+
+  toJson() {}
 }

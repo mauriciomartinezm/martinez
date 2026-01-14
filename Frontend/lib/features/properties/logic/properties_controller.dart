@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/building.dart';
 import '../../../core/models/apartment.dart';
-import '../services/api_service.dart';
+import '../../../core/services/api_service.dart';
 
 /// Controller for properties feature.
 class PropertiesController extends ChangeNotifier {
