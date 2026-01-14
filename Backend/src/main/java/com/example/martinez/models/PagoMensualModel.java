@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "pago_mensual", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_pago_mes", columnNames = {"contrato_arriendo_id", "mes", "anio"})
+        @UniqueConstraint(name = "uk_pago_mes", columnNames = {"contrato_arriendo_id", "mes", "anio", "tipo"})
 })
 public class PagoMensualModel {
     @Id
@@ -32,17 +32,23 @@ public class PagoMensualModel {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private ContratoArriendoModel contratoArriendo;
 
+    @Column(name = "tipo", nullable = false)
+    private String tipo;
+
     @Column(name = "mes", nullable = false)
-    private Integer mes;
+    private String mes;
 
     @Column(name = "anio", nullable = false)
-    private Integer anio;
+    private String anio;
 
     @Column(name = "valor_arriendo", nullable = false, precision = 12, scale = 2)
     private BigDecimal valorArriendo;
 
-    @Column(name = "valor_administracion", nullable = false, precision = 12, scale = 2)
-    private BigDecimal valorAdministracion;
+    @Column(name = "cuota_administracion", nullable = false, precision = 12, scale = 2)
+    private BigDecimal cuotaAdministracion;
+
+    @Column(name = "fondo_inmueble", precision = 12, scale = 2)
+    private BigDecimal fondoInmueble;
 
     @Column(name = "total_neto", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalNeto;
@@ -66,19 +72,27 @@ public class PagoMensualModel {
         this.contratoArriendo = contratoArriendo;
     }
 
-    public Integer getMes() {
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public String getMes() {
         return mes;
     }
 
-    public void setMes(Integer mes) {
+    public void setMes(String mes) {
         this.mes = mes;
     }
 
-    public Integer getAnio() {
+    public String getAnio() {
         return anio;
     }
 
-    public void setAnio(Integer anio) {
+    public void setAnio(String anio) {
         this.anio = anio;
     }
 
@@ -90,12 +104,20 @@ public class PagoMensualModel {
         this.valorArriendo = valorArriendo;
     }
 
-    public BigDecimal getValorAdministracion() {
-        return valorAdministracion;
+    public BigDecimal getCuotaAdministracion() {
+        return cuotaAdministracion;
     }
 
-    public void setValorAdministracion(BigDecimal valorAdministracion) {
-        this.valorAdministracion = valorAdministracion;
+    public void setCuotaAdministracion(BigDecimal cuotaAdministracion) {
+        this.cuotaAdministracion = cuotaAdministracion;
+    }
+
+    public BigDecimal getFondoInmueble() {
+        return fondoInmueble;
+    }
+
+    public void setFondoInmueble(BigDecimal fondoInmueble) {
+        this.fondoInmueble = fondoInmueble;
     }
 
     public BigDecimal getTotalNeto() {

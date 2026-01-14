@@ -86,7 +86,8 @@ public class PagoMensualController {
             pago.setMes(pagoActualizado.getMes());
             pago.setAnio(pagoActualizado.getAnio());
             pago.setValorArriendo(pagoActualizado.getValorArriendo());
-            pago.setValorAdministracion(pagoActualizado.getValorAdministracion());
+            pago.setCuotaAdministracion(pagoActualizado.getCuotaAdministracion());
+            pago.setFondoInmueble(pagoActualizado.getFondoInmueble());
             pago.setTotalNeto(pagoActualizado.getTotalNeto());
             pago.setFechaPago(pagoActualizado.getFechaPago());
             PagoMensualModel pagoGuardado = pagoService.guardar(pago);
