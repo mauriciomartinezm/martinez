@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
-import '../models/building.dart';
-import '../models/apartment.dart';
+import '../../../core/models/building.dart';
+import '../../../core/models/apartment.dart';
+
+const String apiUrl = 'http://192.168.0.101:8080';
 
 Future<List<Building>> fetchBuildings() async {
-  final response = await http.get(Uri.parse('http://localhost:8080/edificios'));
-
+  debugPrint('Fetching buildings from API...');
+  final response = await http.get(Uri.parse('$apiUrl/edificios'));
   if (response.statusCode == 200) {
     List jsonResponse = json.decode(response.body);
     return jsonResponse.map((building) => Building.fromJson(building)).toList();
@@ -15,7 +18,8 @@ Future<List<Building>> fetchBuildings() async {
 }
 
 Future<List<Apartment>> fetchApartments() async {
-  final response = await http.get(Uri.parse('http://localhost:8080/apartamentos'));
+  debugPrint('Fetching apartments from API...');
+  final response = await http.get(Uri.parse('$apiUrl/apartamentos'));
 
   if (response.statusCode == 200) {
     List jsonResponse = json.decode(response.body);

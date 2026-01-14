@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/building.dart';
-import '../models/apartment.dart';
+import '../../../core/models/building.dart';
+import '../../../core/models/apartment.dart';
 import '../services/api_service.dart';
 
 /// Controller for properties feature.
@@ -13,8 +13,17 @@ class PropertiesController extends ChangeNotifier {
   List<Building> _buildings = [];
   List<Building> get buildings => _buildings;
 
+  List<Apartment> _allApartments = [];
+  Map<String, int> _activeCountByBuilding = {};
+
   List<Apartment> _apartments = [];
   List<Apartment> get apartments => _apartments;
+
+  int activeApartmentsCount(String buildingId) => _activeCountByBuilding[buildingId] ?? 0;
+
+  int totalApartmentsCount(String buildingId) {
+    return _allApartments.where((apt) => apt.edificio.id == buildingId).length;
+  }
 
   Building? _selectedBuilding;
   Building? get selectedBuilding => _selectedBuilding;
@@ -33,9 +42,16 @@ class PropertiesController extends ChangeNotifier {
   Future<void> loadBuildings() async {
     _setLoading(true);
     try {
-      _buildings = await fetchBuildings();
+      final buildingsFuture = fetchBuildings();
+      final apartmentsFuture = fetchApartments();
+
+      _buildings = await buildingsFuture;
+      _allApartments = await apartmentsFuture;
+      _recomputeActiveCounts();
     } catch (e) {
       _buildings = [];
+      _allApartments = [];
+      _activeCountByBuilding = {};
     }
     _setLoading(false);
   }
@@ -45,9 +61,11 @@ class PropertiesController extends ChangeNotifier {
     _selectedBuilding = building;
     _setLoading(true);
     try {
-      // Fetch all apartments and filter by selected building
-      final all = await fetchApartments();
-      _apartments = all.where((apt) => apt.edificio.id == building.id).toList();
+      if (_allApartments.isEmpty) {
+        _allApartments = await fetchApartments();
+        _recomputeActiveCounts();
+      }
+      _apartments = _filterApartmentsByBuilding(building.id);
     } catch (e) {
       _apartments = [];
     }
@@ -91,6 +109,18 @@ class PropertiesController extends ChangeNotifier {
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  void _recomputeActiveCounts() {
+    final Map<String, int> counts = {};
+    for (final apt in _allApartments.where((apt) => apt.activa)) {
+      counts.update(apt.edificio.id, (value) => value + 1, ifAbsent: () => 1);
+    }
+    _activeCountByBuilding = counts;
+  }
+
+  List<Apartment> _filterApartmentsByBuilding(String buildingId) {
+    return _allApartments.where((apt) => apt.edificio.id == buildingId).toList();
   }
 }
 

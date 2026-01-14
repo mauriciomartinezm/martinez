@@ -22,6 +22,8 @@ class BuildingsScreen extends StatelessWidget {
                 final building = controller.buildings[index];
                 return BuildingCard(
                   building: building,
+                  activeCount: controller.activeApartmentsCount(building.id),
+                  totalCount: controller.totalApartmentsCount(building.id),
                   onTap: () {
                     controller.selectBuilding(building);
                   },

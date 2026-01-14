@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import '../models/building.dart';
+import '../../../core/models/building.dart';
 
 class BuildingCard extends StatelessWidget {
   const BuildingCard({
     super.key,
     required this.building,
+    required this.activeCount,
+    required this.totalCount,
     required this.onTap,
   });
 
   final Building building;
+  final int activeCount;
+  final int totalCount;
   final VoidCallback onTap;
 
   @override
@@ -52,8 +56,7 @@ class BuildingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      //building.occupancy,
-                      "Revisar esto building ocuppancy",
+                      'Apartamentos activos $activeCount/$totalCount',
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF6F6F6F),

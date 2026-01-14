@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/apartment.dart';
+import '../../../core/models/apartment.dart';
 
 class ApartmentCard extends StatelessWidget {
   const ApartmentCard({
