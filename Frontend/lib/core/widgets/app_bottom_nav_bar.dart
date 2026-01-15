@@ -28,15 +28,11 @@ class AppBottomNavBar extends StatelessWidget {
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.add_circle_outline),
+          icon: Icon(Icons.people_outline),
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+          icon: Icon(Icons.description),
           label: '',
         ),
       ],

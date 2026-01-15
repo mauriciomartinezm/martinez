@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
+import '../../tenants/screens/tenants_screen.dart';
+import '../../contracts/screens/contracts_screen.dart';
 import '../logic/properties_controller.dart';
 import 'apartment_detail_screen.dart';
 import 'apartments_screen.dart';
@@ -59,11 +61,11 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         }
         return BuildingsScreen(controller: controller);
       case 2:
-        return const Center(child: Text('Agregar'));
+        // Tenants
+        return const TenantsScreen();
       case 3:
-        return const Center(child: Text('Buscar'));
-      case 4:
-        return const Center(child: Text('Perfil'));
+        // Contracts
+        return const ContractsScreen();
       default:
         return const Center(child: Text('Pantalla desconocida'));
     }
