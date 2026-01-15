@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/dashboard_cache_service.dart';
 import '../../../core/models/pago_mensual.dart';
+import '../../../core/models/apartment.dart';
 import '../../../core/widgets/floating_message.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoading = false;
   List<PagoMensual> _pagos = [];
+  List<Apartment> _apartments = [];
   String? _errorMessage;
   Map<String, dynamic>? _cachedStats;
 
@@ -44,9 +46,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _errorMessage = null;
     });
     try {
+      final apartments = await fetchApartments();
       final pagos = await fetchPagos();
       if (mounted) {
         setState(() {
+          _apartments = apartments;
           _pagos = pagos;
           _isLoading = false;
         });
@@ -77,14 +81,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     try {
       await fetchBuildings();
-      await fetchApartments();
+      final apartments = await fetchApartments();
       final pagos = await fetchPagos();
       if (mounted) {
         hideLoadingMessage();
         setState(() {
+          _apartments = apartments;
           _pagos = pagos;
           _isLoading = false;
         });
+        // Actualizar caché con nuevas estadísticas
+        final stats = _calculateStats();
+        await DashboardCacheService.saveStats(stats);
         FloatingMessage.showSuccess(
           context,
           message: 'Datos actualizados correctamente',
@@ -107,14 +115,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Map<String, dynamic> _calculateStats() {
     debugPrint('Calculando estadísticas del dashboard...');
-    debugPrint('Total pagos disponibles: ${_pagos.length}');
     if (_pagos.isEmpty) {
       return {
-        'totalRecibido': 0.0,
+        'totalArriendos': 0.0,
         'totalAdministracion': 0.0,
         'totalNeto': 0.0,
-        'totalArriendo': 0.0,
         'totalFondoInmueble': 0.0,
+        'totalEpresedi': 0.0,
         'propiedadesActivas': 0,
         'mesAnio': 'Sin datos',
       };
@@ -141,34 +148,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
     
-    double totalRecibido = 0;
+    double totalArriendos = 0;
     double totalAdministracion = 0;
     double totalNeto = 0;
-    double totalArriendo = 0;
     double totalFondoInmueble = 0;
-    Set<String> contratoActivos = {};
+    double totalEpresedi = 0;
+    Set<String> apartamentosArrendados = {};
 
+    debugPrint('Pagos del mes: ${pagosDelMes.length}');
+    // Calcular apartamentos arrendados directamente desde la lista de apartamentos activos
+    apartamentosArrendados.addAll(
+      _apartments.where((apt) => apt.activa).map((apt) => apt.id),
+    );
+
+    // Calcular totales monetarios a partir de los pagos del mes
     for (var pago in pagosDelMes) {
-      totalRecibido += pago.valorArriendo - pago.cuotaAdministracion - (pago.fondoInmueble ?? 0);
+      totalArriendos += pago.valorArriendo;
       totalAdministracion += pago.cuotaAdministracion;
       totalNeto += pago.totalNeto;
-      totalArriendo += pago.valorArriendo;
       totalFondoInmueble += pago.fondoInmueble ?? 0;
-      
-      if (pago.contratoArriendo.activo) {
-        contratoActivos.add(pago.contratoArriendo.id);
-      }
     }
+
+    totalEpresedi = totalAdministracion + totalFondoInmueble;
 
     final mesAnio = '${mesNombres[currentDate.month - 1]} ${currentDate.year}';
 
     return {
-      'totalRecibido': totalRecibido,
+      'totalArriendos': totalArriendos,
       'totalAdministracion': totalAdministracion,
       'totalNeto': totalNeto,
-      'totalArriendo': totalArriendo,
       'totalFondoInmueble': totalFondoInmueble,
-      'propiedadesActivas': contratoActivos.length,
+      'totalEpresedi': totalEpresedi,
+      'propiedadesActivas': apartamentosArrendados.length,
       'mesAnio': mesAnio,
     };
   }
@@ -178,33 +189,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return formatter.format(amount);
   }
 
+  Map<String, dynamic> _normalizeStats(Map<String, dynamic>? raw) {
+    double _toDouble(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    int _toInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    final data = raw ?? {};
+
+    return {
+      'totalArriendos': _toDouble(data['totalArriendos'] ?? data['totalRecibido']),
+      'totalAdministracion': _toDouble(data['totalAdministracion']),
+      'totalNeto': _toDouble(data['totalNeto']),
+      'totalFondoInmueble': _toDouble(data['totalFondoInmueble']),
+      'totalEpresedi': _toDouble(data['totalEpresedi'] ??
+          ((_toDouble(data['totalAdministracion']) + _toDouble(data['totalFondoInmueble'])))),
+      'propiedadesActivas': _toInt(data['propiedadesActivas']),
+      'mesAnio': data['mesAnio'] ?? 'Sin datos',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     // Usar estadísticas en caché si no hay datos frescos
-    final stats = _pagos.isNotEmpty ? _calculateStats() : (_cachedStats ?? _calculateStats());
-
+    final stats = _normalizeStats(
+      _pagos.isNotEmpty ? _calculateStats() : (_cachedStats ?? _calculateStats()),
+    );
+    debugPrint('Estadísticas mostradas: $stats');
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Center(
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.refresh, color: Colors.black),
-                      onPressed: _refreshData,
-                    ),
-            ),
-          ),
-        ],
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: _errorMessage != null
             ? Center(
@@ -229,134 +252,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Summary title
-                        Text(
-                          'Resumen de ${stats['mesAnio']}',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        // Summary title with refresh button
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Resumen de ${stats['mesAnio']}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.refresh, color: Colors.black),
+                                    onPressed: _refreshData,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                          ],
                         ),
                         const SizedBox(height: 16),
 
-                        // Total received and active properties
+                        // Totales principales
                         Row(
                           children: [
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F5F5),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Total recibido',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF6F6F6F),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _formatCurrency(stats['totalRecibido']),
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF5F5F5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: List.generate(
-                                      4,
-                                      (index) => Padding(
-                                        padding: const EdgeInsets.only(left: 4),
-                                        child: Icon(
-                                          Icons.home,
-                                          size: 20,
-                                          color: index < stats['propiedadesActivas']
-                                              ? const Color(0xFF4B4B4B)
-                                              : const Color(0xFFAAAAAA),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Propiedades',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF6F6F6F),
-                                    ),
-                                  ),
-                                  const Text(
-                                    'activas',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF6F6F6F),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Total administration and net
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F5F5),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Total',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF6F6F6F),
-                                      ),
-                                    ),
-                                    const Text(
-                                      'administración',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF6F6F6F),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _formatCurrency(stats['totalAdministracion']),
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
                             Expanded(
                               child: Container(
                                 padding: const EdgeInsets.all(16),
@@ -370,13 +295,197 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     const Text(
                                       'Total neto',
                                       style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF6F6F6F),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF2C2C2C),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       _formatCurrency(stats['totalNeto']),
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      stats['propiedadesActivas'].toString(),
+                                      style: const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF4B4B4B),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          'Apartamentos',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6F6F6F),
+                                          ),
+                                        ),
+                                        const Text(
+                                          'arrendados',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6F6F6F),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Total arriendos, administración y fondo
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.attach_money, size: 28, color: Color(0xFF6F6F6F)),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Arriendos',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Color(0xFF6F6F6F),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatCurrency(stats['totalArriendos']),
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.description, size: 28, color: Color(0xFF6F6F6F)),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Administración',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Color(0xFF6F6F6F),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatCurrency(stats['totalAdministracion']),
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Fondo inmueble y EPRESEDI (admin + fondo)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.savings, size: 28, color: Color(0xFF6F6F6F)),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Fondo inmueble',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Color(0xFF6F6F6F),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatCurrency(stats['totalFondoInmueble']),
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.account_balance, size: 28, color: Color(0xFF6F6F6F)),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'EPRESEDI',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Color(0xFF6F6F6F),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatCurrency(stats['totalEpresedi']),
                                       style: const TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.w600,
@@ -447,117 +556,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Breakdown cards
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F5F5),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Icon(Icons.home, size: 32, color: Color(0xFF6F6F6F)),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Arriendo',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Color(0xFF6F6F6F),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatCurrency(stats['totalArriendo']),
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F5F5),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Icon(Icons.description, size: 32, color: Color(0xFF6F6F6F)),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Administración',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Color(0xFF6F6F6F),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatCurrency(stats['totalAdministracion']),
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F5F5),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Icon(Icons.savings, size: 32, color: Color(0xFF6F6F6F)),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Fondo',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Color(0xFF6F6F6F),
-                                          ),
-                                        ),
-                                        const Text(
-                                          'Inmueble',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Color(0xFF6F6F6F),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatCurrency(stats['totalFondoInmueble']),
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        
                       ],
                     ),
                   ),
