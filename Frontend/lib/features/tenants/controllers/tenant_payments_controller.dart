@@ -75,10 +75,16 @@ class TenantPaymentsController extends ChangeNotifier {
   }
 
   int getPaymentsSinceContract() {
+    debugPrint('Calculando pagos desde el último aumento...');
     if (_firstContract == null) return _payments.length;
     
-    // Contar pagos desde la fecha de inicio del primer contrato
-    final contractStart = _firstContract!.fechaInicio;
+    // Obtener la fecha del último aumento realizado
+    final lastIncreaseDate = getIncreaseDate();
+    
+    // Si no ha habido ningún aumento, contar desde el primer contrato
+    final countFromDate = lastIncreaseDate ?? _firstContract!.fechaInicio;
+    
+    debugPrint('Contando desde: $countFromDate');
     int count = 0;
     
     for (var pago in _payments) {
@@ -90,13 +96,14 @@ class TenantPaymentsController extends ChangeNotifier {
       
       if (year > 0 && monthIndex > 0) {
         final pagoDate = DateTime(year, monthIndex);
-        if (pagoDate.isAfter(contractStart) || 
-            pagoDate.year == contractStart.year && pagoDate.month == contractStart.month) {
+        // Contar pagos DESPUÉS del último aumento (no incluir el mes del aumento)
+        if (pagoDate.isAfter(countFromDate)) {
           count++;
         }
       }
     }
     
+    debugPrint('Pagos desde último aumento: $count');
     return count;
   }
 
