@@ -45,11 +45,9 @@ class Contract {
     String extractTenantId() {
       // Intentar desde apartamento.arrendatario.id
       if (json['arrendatario'] is Map) {
-        debugPrint('Encontrado arrendatario anidado');
         final arrendatario =
             json['arrendatario'] as Map<String, dynamic>;
         if (arrendatario['id'] != null) {
-          debugPrint('tenantId extraído: ${arrendatario['id']}');
           return _toString(arrendatario['id']);
         }
       }
@@ -99,7 +97,7 @@ class Contract {
           ? DateTime.parse(json['fechaFin'].toString())
           : null,
       montoMensual: _toDouble(json['montoMensual']),
-      estado: _toString(json['estado'] ?? 'vigente'),
+      estado: _toString(json['activo']),
       documento: _toString(json['documento']),
     );
   }

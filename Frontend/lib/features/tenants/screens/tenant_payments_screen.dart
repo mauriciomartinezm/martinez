@@ -135,14 +135,14 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  if (_controller.latestContract != null) ...[
+                                  if (_controller.firstContract != null) ...[
                                     Row(
                                       children: [
                                         const Icon(Icons.calendar_today,
                                             size: 16, color: Colors.white70),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'Contrato desde ${_controller.formatDate(_controller.latestContract!.fechaInicio)}',
+                                          'Contrato desde ${_controller.formatDate(_controller.firstContract!.fechaInicio)}',
                                           style: const TextStyle(
                                             fontSize: 13,
                                             color: Colors.white70,
@@ -150,6 +150,24 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                         ),
                                       ],
                                     ),
+                                    if (_controller.latestContract != null && 
+                                        _controller.firstContract!.id != _controller.latestContract!.id) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.file_copy_outlined,
+                                              size: 16, color: Colors.white70),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Último contrato ${_controller.formatDate(_controller.latestContract!.fechaInicio)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                     if (_controller.latestContract?.fechaFin != null) ...[
                                       const SizedBox(height: 4),
                                       Row(
@@ -162,6 +180,42 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                             style: const TextStyle(
                                               fontSize: 13,
                                               color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    if (_controller.getIncreaseDate() != null) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.trending_up,
+                                              size: 16, color: Colors.orangeAccent),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Se debió hacer aumento en ${_controller.formatDate(_controller.getIncreaseDate()!)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.orangeAccent,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    if (_controller.getNextIncreaseDate() != null) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.schedule,
+                                              size: 16, color: Colors.lightBlueAccent),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Se deberá hacer aumento en ${_controller.formatDate(_controller.getNextIncreaseDate()!)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.lightBlueAccent,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                         ],

@@ -27,7 +27,7 @@ class Tenant {
       fechaInicio: json['fechaInicio'] != null 
           ? DateTime.parse(json['fechaInicio'])
           : DateTime.now(),
-      estado: json['estado'] ?? 'activo',
+      estado: json['activo'],
     );
   }
 

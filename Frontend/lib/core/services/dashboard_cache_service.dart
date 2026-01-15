@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class DashboardCacheService {
   /// Caché en memoria para las estadísticas del dashboard
   static Map<String, dynamic>? _cachedStats;

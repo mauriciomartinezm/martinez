@@ -6,12 +6,14 @@ class TenantPaymentsController extends ChangeNotifier {
   bool _isLoading = false;
   List<PagoMensual> _payments = [];
   Contract? _latestContract;
+  Contract? _firstContract;
   String? _errorMessage;
 
   // Getters
   bool get isLoading => _isLoading;
   List<PagoMensual> get payments => _payments;
   Contract? get latestContract => _latestContract;
+  Contract? get firstContract => _firstContract;
   String? get errorMessage => _errorMessage;
 
   void loadPayments(String tenantId, List<PagoMensual> allPayments, List<Contract> allContracts) {
@@ -36,11 +38,12 @@ class TenantPaymentsController extends ChangeNotifier {
         final bIndex = monthOrder.indexOf(b.mes);
         return bIndex.compareTo(aIndex);
       });
-      // Obtener el contrato más reciente usando los contratos locales
+      // Obtener el contrato más reciente y el primer contrato usando los contratos locales
       final tenantContracts = allContracts.where((c) => c.tenantId == tenantId).toList();
       if (tenantContracts.isNotEmpty) {
         tenantContracts.sort((a, b) => b.fechaInicio.compareTo(a.fechaInicio));
-        _latestContract = tenantContracts.first;
+        _latestContract = tenantContracts.first; // Contrato más reciente
+        _firstContract = tenantContracts.last; // Primer contrato histórico
       }
       
       _isLoading = false;
@@ -72,10 +75,10 @@ class TenantPaymentsController extends ChangeNotifier {
   }
 
   int getPaymentsSinceContract() {
-    if (_latestContract == null) return _payments.length;
+    if (_firstContract == null) return _payments.length;
     
-    // Contar pagos desde la fecha de inicio del contrato
-    final contractStart = _latestContract!.fechaInicio;
+    // Contar pagos desde la fecha de inicio del primer contrato
+    final contractStart = _firstContract!.fechaInicio;
     int count = 0;
     
     for (var pago in _payments) {
@@ -95,6 +98,56 @@ class TenantPaymentsController extends ChangeNotifier {
     }
     
     return count;
+  }
+
+  DateTime? getIncreaseDate() {
+    if (_firstContract == null) return null;
+    
+    final contractStart = _firstContract!.fechaInicio;
+    final now = DateTime.now();
+    
+    // Calcular cuántos años completos han pasado desde el primer contrato
+    int yearsPassed = now.year - contractStart.year;
+    
+    // Ajustar si aún no ha llegado el mes/día del aniversario este año
+    if (now.month < contractStart.month || 
+        (now.month == contractStart.month && now.day < contractStart.day)) {
+      yearsPassed--;
+    }
+    
+    // Si ha pasado al menos 1 año, retornar la fecha del último aniversario
+    if (yearsPassed >= 1) {
+      return DateTime(
+        contractStart.year + yearsPassed,
+        contractStart.month,
+        contractStart.day,
+      );
+    }
+    
+    return null;
+  }
+
+  DateTime? getNextIncreaseDate() {
+    if (_firstContract == null) return null;
+    
+    final contractStart = _firstContract!.fechaInicio;
+    final now = DateTime.now();
+    
+    // Calcular cuántos años completos han pasado desde el primer contrato
+    int yearsPassed = now.year - contractStart.year;
+    
+    // Ajustar si aún no ha llegado el mes/día del aniversario este año
+    if (now.month < contractStart.month || 
+        (now.month == contractStart.month && now.day < contractStart.day)) {
+      yearsPassed--;
+    }
+    
+    // Retornar la fecha del próximo aniversario
+    return DateTime(
+      contractStart.year + yearsPassed + 1,
+      contractStart.month,
+      contractStart.day,
+    );
   }
 
   Map<String, List<PagoMensual>> getPaymentsByYear() {

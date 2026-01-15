@@ -66,6 +66,12 @@ class _TenantsScreenState extends State<TenantsScreen> {
         .toList();
   }
 
+  bool _isTenantActive(Tenant tenant) {
+    // Un arrendatario está activo si tiene al menos un contrato activo
+    return _allContracts.any((contract) =>
+        contract.tenantId == tenant.id && contract.estado == 'true');
+  }
+
   void _showTenantDetails(Tenant tenant) {
     showModalBottomSheet(
       context: context,
@@ -204,6 +210,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
                                       final tenant = _filteredTenants[index];
                                       return _TenantCard(
                                         tenant: tenant,
+                                        isActive: _isTenantActive(tenant),
                                         onTap: () =>
                                             _showTenantDetails(tenant),
                                       );
@@ -221,10 +228,12 @@ class _TenantsScreenState extends State<TenantsScreen> {
 
 class _TenantCard extends StatelessWidget {
   final Tenant tenant;
+  final bool isActive;
   final VoidCallback onTap;
 
   const _TenantCard({
     required this.tenant,
+    required this.isActive,
     required this.onTap,
   });
 
@@ -276,17 +285,17 @@ class _TenantCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: tenant.estado == 'activo'
+                      color: isActive
                           ? Colors.green.withOpacity(0.1)
                           : Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      tenant.estado,
+                      isActive ? 'activo' : 'inactivo',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: tenant.estado == 'activo'
+                        color: isActive
                             ? Colors.green
                             : Colors.orange,
                       ),

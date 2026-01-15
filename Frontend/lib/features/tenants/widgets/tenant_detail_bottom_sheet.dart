@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/tenant.dart';
-import '../screens/tenant_payments_screen.dart';
 
 class TenantDetailBottomSheet extends StatelessWidget {
   final Tenant tenant;
