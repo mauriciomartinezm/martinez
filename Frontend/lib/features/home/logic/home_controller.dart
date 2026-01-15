@@ -3,9 +3,9 @@ import '../../../core/models/building.dart';
 import '../../../core/models/apartment.dart';
 import '../../../core/services/api_service.dart';
 
-/// Controller for properties feature.
-class PropertiesController extends ChangeNotifier {
-  PropertiesController();
+/// Controller for home feature.
+class HomeController extends ChangeNotifier {
+  HomeController();
 
   int _selectedTab = 0;
   int get selectedTab => _selectedTab;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/screens/login_screen.dart';
-import 'features/properties/screens/properties_screen.dart';
+import 'features/home/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
       title: 'Martínez',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const PropertiesScreen(),
+      home: const HomeScreen(),
     );
   }
 }

@@ -3,25 +3,25 @@ import '../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../tenants/screens/tenants_screen.dart';
 import '../../contracts/screens/contracts_screen.dart';
-import '../logic/properties_controller.dart';
-import 'apartment_detail_screen.dart';
-import 'apartments_screen.dart';
-import 'buildings_screen.dart';
+import '../logic/home_controller.dart';
+import '../../properties/screens/apartment_detail_screen.dart';
+import '../../properties/screens/apartments_screen.dart';
+import '../../properties/screens/buildings_screen.dart';
 
-class PropertiesScreen extends StatefulWidget {
-  const PropertiesScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<PropertiesScreen> createState() => _PropertiesScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _PropertiesScreenState extends State<PropertiesScreen> {
-  late final PropertiesController controller;
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeController controller;
 
   @override
   void initState() {
     super.initState();
-    controller = PropertiesController();
+    controller = HomeController();
     controller.loadBuildings();
   }
 

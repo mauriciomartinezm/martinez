@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../logic/properties_controller.dart';
+import '../../home/logic/home_controller.dart';
 import '../widgets/apartment_card.dart';
 
 class ApartmentsScreen extends StatelessWidget {
   const ApartmentsScreen({super.key, required this.controller});
 
-  final PropertiesController controller;
+  final HomeController controller;
 
   @override
   Widget build(BuildContext context) {
