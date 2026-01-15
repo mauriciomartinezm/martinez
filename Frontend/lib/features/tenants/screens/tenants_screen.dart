@@ -309,9 +309,9 @@ class _TenantCard extends StatelessWidget {
                   const Icon(Icons.email_outlined,
                       size: 16, color: Color(0xFF6F6F6F)),
                   const SizedBox(width: 8),
-                  Expanded(
+                  Expanded( 
                     child: Text(
-                      tenant.email,
+                      tenant.email.isEmpty ? 'No proporcionado' : tenant.email,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF6F6F6F),
@@ -328,7 +328,7 @@ class _TenantCard extends StatelessWidget {
                       size: 16, color: Color(0xFF6F6F6F)),
                   const SizedBox(width: 8),
                   Text(
-                    tenant.telefono,
+                    tenant.telefono.isEmpty ? 'No proporcionado' : tenant.telefono,
                     style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF6F6F6F),

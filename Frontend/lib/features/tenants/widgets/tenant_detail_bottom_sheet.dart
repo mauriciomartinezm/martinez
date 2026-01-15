@@ -68,11 +68,9 @@ class TenantDetailBottomSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _infoRow('Email', tenant.email),
+                  _infoRow('Email', tenant.email.isEmpty ? 'No proporcionado' : tenant.email),
                   const SizedBox(height: 12),
-                  _infoRow('Teléfono', tenant.telefono),
-                  const SizedBox(height: 12),
-                  _infoRow('Desde', _formatDate(tenant.fechaInicio)),
+                  _infoRow('Teléfono', tenant.telefono.isEmpty ? 'No proporcionado' : tenant.telefono),
                   const SizedBox(height: 12),
                   _infoRow(
                     'Estado',
