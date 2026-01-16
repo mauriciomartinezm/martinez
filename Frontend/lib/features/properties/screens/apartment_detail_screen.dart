@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:martinez/core/theme/app_colors.dart';
 import '../../../core/models/pago_mensual.dart';
+import '../../../core/models/contract.dart';
 import '../../../core/services/api_service.dart';
 import '../../home/logic/home_controller.dart';
 import '../../tenants/widgets/payment_card.dart';
@@ -18,6 +19,7 @@ class ApartmentDetailScreen extends StatefulWidget {
 class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
   List<PagoMensual> _apartmentPayments = [];
   bool _isLoadingPayments = false;
+  Contract? _activeContract;
   late TenantPaymentsController _paymentsController;
 
   @override
@@ -25,12 +27,46 @@ class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
     super.initState();
     _paymentsController = TenantPaymentsController();
     _loadPayments();
+    _loadActiveContract();
   }
 
   @override
   void dispose() {
     _paymentsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadActiveContract() async {
+    if (widget.controller.selectedApartment == null) return;
+
+    try {
+      final allContracts = await fetchContracts();
+      final apartmentId = widget.controller.selectedApartment!.id;
+      
+      _activeContract = allContracts.firstWhere(
+        (contract) => contract.apartamentoId == apartmentId && contract.estado == 'true',
+        orElse: () => allContracts.firstWhere(
+          (contract) => contract.apartamentoId == apartmentId,
+          orElse: () => Contract(
+            id: '',
+            tenantId: '',
+            tenantName: '',
+            apartamento: '',
+            apartamentoId: '',
+            fechaInicio: DateTime.now(),
+            montoMensual: 0,
+            estado: '',
+            documento: '',
+          ),
+        ),
+      );
+      debugPrint('Contrato activo cargadoo: ${_activeContract!.id}');
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      _activeContract = null;
+    }
   }
 
   Future<void> _loadPayments() async {
@@ -232,73 +268,180 @@ class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            // Active contract card
+            if (_activeContract != null && _activeContract!.id.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _activeContract!.estado == 'true' 
+                              ? Icons.description 
+                              : Icons.description_outlined,
+                          size: 24,
+                          color: _activeContract!.estado == 'true' 
+                              ? Colors.green[700] 
+                              : AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _activeContract!.estado == 'true' 
+                                ? 'Contrato Activo' 
+                                : 'Último Contrato',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person_outline,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Arrendatario',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _activeContract!.tenantName,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.attach_money,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Monto mensual',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _apartmentPayments.isNotEmpty
+                                    ? _paymentsController.formatCurrency(_apartmentPayments.first.valorArriendo)
+                                    : _paymentsController.formatCurrency(_activeContract!.montoMensual),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Fecha inicio',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _paymentsController.formatDate(_activeContract!.fechaInicio),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_activeContract!.fechaFin != null) ...[
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Fecha fin',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _paymentsController.formatDate(_activeContract!.fechaFin!),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 24),
-            /*
-            // Rent date info
-            if (apartment.rentDate != null) ...[
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Fecha de arrendamiento',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF6F6F6F),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      apartment.rentDate!,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Rent amount info
-            if (apartment.rentAmount != null) ...[
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Monto del arriendo',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF6F6F6F),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      apartment.rentAmount!,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-            */
-           
             // Payments section
             if (_isLoadingPayments)
               const Center(child: CircularProgressIndicator())

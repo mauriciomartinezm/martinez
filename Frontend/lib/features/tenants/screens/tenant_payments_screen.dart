@@ -5,7 +5,6 @@ import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/contract.dart';
 import '../controllers/tenant_payments_controller.dart';
 import '../widgets/payment_card.dart';
-import '../widgets/payment_card.dart';
 
 class TenantPaymentsScreen extends StatefulWidget {
   final Tenant tenant;

@@ -5,6 +5,7 @@ class Contract {
   final String tenantId;
   final String tenantName;
   final String apartamento;
+  final String apartamentoId;
   final DateTime fechaInicio;
   final DateTime? fechaFin;
   final double montoMensual;
@@ -16,6 +17,7 @@ class Contract {
     required this.tenantId,
     required this.tenantName,
     required this.apartamento,
+    required this.apartamentoId,
     required this.fechaInicio,
     this.fechaFin,
     required this.montoMensual,
@@ -58,16 +60,14 @@ class Contract {
     // Extraer tenantName desde la estructura anidada
     String extractTenantName() {
       // Intentar desde apartamento.arrendatario.nombre
-      if (json['apartamento'] is Map) {
-        final apartamento = json['apartamento'] as Map<String, dynamic>;
-        if (apartamento['arrendatario'] is Map) {
+
+        if (json['arrendatario'] is Map) {
           final arrendatario =
-              apartamento['arrendatario'] as Map<String, dynamic>;
+              json['arrendatario'] as Map<String, dynamic>;
           if (arrendatario['nombre'] != null) {
             return _toString(arrendatario['nombre']);
           }
         }
-      }
       // Fallback
       return _toString(json['tenantName'] ?? json['arrendatario']);
     }
@@ -85,11 +85,24 @@ class Contract {
       return _toString(json['apartamento']);
     }
 
+    String extractApartamentoId() {
+      if (json['apartamento'] is Map) {
+        final apartamento = json['apartamento'] as Map<String, dynamic>;
+        if (apartamento['id'] is Map) {
+          final apt = apartamento['apartamento'] as Map<String, dynamic>;
+          return _toString(apt['id'] ?? '');
+        }
+        return _toString(apartamento['id'] ?? '');
+      }
+      return _toString(json['apartamento']);
+    }
+
     return Contract(
       id: _toString(json['id']),
       tenantId: extractTenantId(),
       tenantName: extractTenantName(),
       apartamento: extractApartamento(),
+      apartamentoId: extractApartamentoId(),
       fechaInicio: json['fechaInicio'] != null
           ? DateTime.parse(json['fechaInicio'].toString())
           : DateTime.now(),

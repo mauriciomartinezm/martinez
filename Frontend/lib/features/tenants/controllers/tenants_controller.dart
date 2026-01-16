@@ -38,6 +38,7 @@ class TenantsController extends ChangeNotifier {
           tenantId: '',
           tenantName: '',
           apartamento: 'No asignado',
+          apartamentoId: '',
           fechaInicio: DateTime.now(),
           montoMensual: 0,
           estado: '',
@@ -46,11 +47,11 @@ class TenantsController extends ChangeNotifier {
       ),
     );
     
-    final apartmentNumber = activeContract.apartamento;
+    final apartmentId = activeContract.apartamentoId;
     
     // Buscar el apartamento correspondiente para obtener el edificio
     final apartment = _apartments.firstWhere(
-      (apt) => apt.piso == apartmentNumber,
+      (apt) => apt.id == apartmentId,
       orElse: () => _apartments.isNotEmpty ? _apartments.first : Apartment(
         activa: false,
         edificio: Building(id: '', nombre: 'Desconocido', direccion: ''),
@@ -59,11 +60,11 @@ class TenantsController extends ChangeNotifier {
       ),
     );
     
-    if (apartmentNumber == 'No asignado') {
+    if (apartmentId == 'No asignado') {
       return 'No asignado';
     }
     
-    return '${apartment.edificio.nombre} - Apto $apartmentNumber';
+    return '${apartment.edificio.nombre} - Apto ${apartment.piso}';
   }
 
   Future<void> loadTenants() async {
