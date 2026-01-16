@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 import '../controllers/dashboard_controller.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/dashboard_stat_card.dart';
@@ -35,11 +36,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (!mounted) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    
+
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
@@ -47,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         debugPrint('Estadísticas mostradas: $stats');
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
           body: SafeArea(
             child: _controller.errorMessage != null
                 ? DashboardErrorView(
@@ -55,101 +54,108 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onRetry: _controller.loadInitialData,
                   )
                 : _controller.isLoading && _controller.pagos.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Summary header
+                        DashboardHeader(
+                          title: 'Resumen de ${stats['mesAnio']}',
+                          isLoading: _controller.isLoading,
+                          onRefresh: () => _controller.refreshData(context),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Main totals row
+                        Row(
                           children: [
-                            // Summary header
-                            DashboardHeader(
-                              title: 'Resumen de ${stats['mesAnio']}',
-                              isLoading: _controller.isLoading,
-                              onRefresh: () => _controller.refreshData(context),
+                            Expanded(
+                              child: DashboardStatCard(
+                                title: 'Total neto',
+                                value: _controller.formatCurrency(
+                                  stats['totalNeto'],
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 16),
-
-                            // Main totals row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: DashboardStatCard(
-                                    title: 'Total neto',
-                                    value: _controller
-                                        .formatCurrency(stats['totalNeto']),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: DashboardApartmentsCard(
-                                    count: stats['propiedadesActivas'],
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: DashboardApartmentsCard(
+                                count: stats['propiedadesActivas'],
+                              ),
                             ),
-                            const SizedBox(height: 12),
-
-                            // Income breakdown row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: DashboardStatCard(
-                                    icon: Icons.attach_money,
-                                    title: 'Arriendos',
-                                    value: _controller
-                                        .formatCurrency(stats['totalArriendos']),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: DashboardStatCard(
-                                    icon: Icons.description,
-                                    title: 'Administración',
-                                    value: _controller.formatCurrency(
-                                        stats['totalAdministracion']),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Funds row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: DashboardStatCard(
-                                    icon: Icons.savings,
-                                    title: 'Fondo inmueble',
-                                    value: _controller.formatCurrency(
-                                        stats['totalFondoInmueble']),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: DashboardStatCard(
-                                    icon: Icons.account_balance,
-                                    title: 'EPRESEDI',
-                                    value: _controller
-                                        .formatCurrency(stats['totalEpresedi']),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Monthly comparison
-                            DashboardComparison(
-                              currentMonthValue: _controller
-                                  .formatCurrency(stats['totalNeto']),
-                              difference: stats['diferenciaNeto'],
-                              previousMonthValue: _controller.formatCurrency(
-                                  stats['totalNetoAnterior']),
-                              formatCurrency: _controller.formatCurrency,
-                            ),
-                            const SizedBox(height: 16),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 12),
+
+                        // Income breakdown row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.attach_money,
+                                title: 'Arriendos',
+                                value: _controller.formatCurrency(
+                                  stats['totalArriendos'],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.description,
+                                title: 'Administración',
+                                value: _controller.formatCurrency(
+                                  stats['totalAdministracion'],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Funds row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.savings,
+                                title: 'Fondo inmueble',
+                                value: _controller.formatCurrency(
+                                  stats['totalFondoInmueble'],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.account_balance,
+                                title: 'EPRESEDI',
+                                value: _controller.formatCurrency(
+                                  stats['totalEpresedi'],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Monthly comparison
+                        DashboardComparison(
+                          currentMonthValue: _controller.formatCurrency(
+                            stats['totalNeto'],
+                          ),
+                          difference: stats['diferenciaNeto'],
+                          previousMonthValue: _controller.formatCurrency(
+                            stats['totalNetoAnterior'],
+                          ),
+                          formatCurrency: _controller.formatCurrency,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
           ),
         );
       },

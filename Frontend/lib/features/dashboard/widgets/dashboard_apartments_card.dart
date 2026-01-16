@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 
 class DashboardApartmentsCard extends StatelessWidget {
   final int count;
-  final Color? backgroundColor;
 
-  const DashboardApartmentsCard({
-    super.key,
-    required this.count,
-    this.backgroundColor,
-  });
+  const DashboardApartmentsCard({super.key, required this.count});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? const Color(0xFFF5F5F5),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -25,7 +21,7 @@ class DashboardApartmentsCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF4B4B4B),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(width: 12),
@@ -35,17 +31,11 @@ class DashboardApartmentsCard extends StatelessWidget {
             children: [
               Text(
                 'Apartamentos',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF6F6F6F),
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               Text(
                 'arrendados',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF6F6F6F),
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 import '../../home/logic/home_controller.dart';
 import '../widgets/building_card.dart';
 
@@ -10,7 +11,18 @@ class BuildingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edificios'), elevation: 0),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text(
+          'Edificios',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
       body: controller.isLoading
           ? const Center(child: CircularProgressIndicator())
           : controller.buildings.isEmpty

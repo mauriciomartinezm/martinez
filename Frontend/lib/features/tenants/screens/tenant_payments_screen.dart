@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 import '../../../core/models/tenant.dart';
 import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/contract.dart';
 import '../controllers/tenant_payments_controller.dart';
+import '../widgets/payment_card.dart';
+import '../widgets/payment_card.dart';
 
 class TenantPaymentsScreen extends StatefulWidget {
   final Tenant tenant;
@@ -52,17 +55,17 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       listenable: _controller,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
           appBar: AppBar(
             title: Text('Pagos - ${widget.tenant.nombre}'),
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.background,
             elevation: 0,
             titleTextStyle: const TextStyle(
-              color: Colors.black,
+              color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
-            iconTheme: const IconThemeData(color: Colors.black),
+            iconTheme: const IconThemeData(color: AppColors.textPrimary),
           ),
           body: _controller.errorMessage != null
               ? Center(
@@ -138,12 +141,12 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                               _controller.getTotalPaid(),
                             ),
                             style: const TextStyle(
-                              fontSize: 32,
+                              fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           if (_controller.firstContract != null) ...[
                             Row(
                               children: [
@@ -290,7 +293,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                         itemCount: _controller.payments.length,
                         itemBuilder: (context, index) {
                           final pago = _controller.payments[index];
-                          return _PaymentCard(
+                          return PaymentCard(
                             pago: pago,
                             controller: _controller,
                           );
@@ -301,145 +304,6 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                 ),
         );
       },
-    );
-  }
-}
-
-class _PaymentCard extends StatelessWidget {
-  final PagoMensual pago;
-  final TenantPaymentsController controller;
-
-  const _PaymentCard({required this.pago, required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${pago.mes} ${pago.anio}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      pago.tipo,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6F6F6F),
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        controller.formatCurrency(pago.totalNeto),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            _DetailRow(
-              label: 'Arriendo',
-              value: controller.formatCurrency(pago.valorArriendo),
-            ),
-            const SizedBox(height: 8),
-            _DetailRow(
-              label: 'Administración',
-              value: controller.formatCurrency(pago.cuotaAdministracion),
-            ),
-            if (pago.fondoInmueble != null && pago.fondoInmueble! > 0) ...[
-              const SizedBox(height: 8),
-              _DetailRow(
-                label: 'Fondo inmueble',
-                value: controller.formatCurrency(pago.fondoInmueble!),
-              ),
-            ],
-            if (pago.fechaPago != null) ...[
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today,
-                    size: 14,
-                    color: Color(0xFF6F6F6F),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Fecha de pago: ${pago.fechaPago}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6F6F6F),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF6F6F6F)),
-        ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-        ),
-      ],
     );
   }
 }

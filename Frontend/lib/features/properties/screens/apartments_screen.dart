@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 import '../../home/logic/home_controller.dart';
 import '../widgets/apartment_card.dart';
 
@@ -18,7 +19,9 @@ class ApartmentsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(building.nombre),
+        title: Text(building.nombre ,
+            style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -30,20 +33,20 @@ class ApartmentsScreen extends StatelessWidget {
       body: controller.isLoading
           ? const Center(child: CircularProgressIndicator())
           : controller.apartments.isEmpty
-              ? const Center(child: Text('No hay apartamentos disponibles'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: controller.apartments.length,
-                  itemBuilder: (context, index) {
-                    final apartment = controller.apartments[index];
-                    return ApartmentCard(
-                      apartment: apartment,
-                      onTap: () {
-                        controller.selectApartment(apartment);
-                      },
-                    );
+          ? const Center(child: Text('No hay apartamentos disponibles'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: controller.apartments.length,
+              itemBuilder: (context, index) {
+                final apartment = controller.apartments[index];
+                return ApartmentCard(
+                  apartment: apartment,
+                  onTap: () {
+                    controller.selectApartment(apartment);
                   },
-                ),
+                );
+              },
+            ),
     );
   }
 }

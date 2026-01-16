@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 import '../controllers/tenants_controller.dart';
 import '../../../core/models/tenant.dart';
 import '../../../core/models/contract.dart';
 import '../../../core/models/pago_mensual.dart';
+import '../../../core/models/apartment.dart';
 import '../../../core/services/api_service.dart';
 import '../widgets/tenant_detail_bottom_sheet.dart';
+import '../widgets/tenant_card.dart';
 import 'tenant_payments_screen.dart';
 import 'tenant_contracts_screen.dart';
 
@@ -20,6 +23,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
   String _searchQuery = '';
   List<Contract> _allContracts = [];
   List<PagoMensual> _allPayments = [];
+  List<Apartment> _allApartments = [];
 
   @override
   void initState() {
@@ -36,9 +40,12 @@ class _TenantsScreenState extends State<TenantsScreen> {
       final results = await Future.wait([
         fetchContracts(),
         fetchPagos(),
+        fetchApartments(),
       ]);
       _allContracts = results[0] as List<Contract>;
       _allPayments = results[1] as List<PagoMensual>;
+      _allApartments = results[2] as List<Apartment>;
+      _controller.setData(_allContracts, _allApartments);
       if (mounted) {
         setState(() {});
       }
@@ -58,18 +65,18 @@ class _TenantsScreenState extends State<TenantsScreen> {
       return _controller.tenants;
     }
     return _controller.tenants
-        .where((tenant) =>
-            tenant.nombre.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            tenant.apartamento
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()))
+        .where(
+          (tenant) =>
+              tenant.nombre.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
         .toList();
   }
 
   bool _isTenantActive(Tenant tenant) {
     // Un arrendatario está activo si tiene al menos un contrato activo
-    return _allContracts.any((contract) =>
-        contract.tenantId == tenant.id && contract.estado == 'true');
+    return _allContracts.any(
+      (contract) => contract.tenantId == tenant.id && contract.estado == 'true',
+    );
   }
 
   void _showTenantDetails(Tenant tenant) {
@@ -81,6 +88,8 @@ class _TenantsScreenState extends State<TenantsScreen> {
       ),
       builder: (context) => TenantDetailBottomSheet(
         tenant: tenant,
+        controller: _controller,
+
         onPaymentsPressed: () {
           Navigator.pop(context);
           Navigator.push(
@@ -113,34 +122,36 @@ class _TenantsScreenState extends State<TenantsScreen> {
   @override
   Widget build(BuildContext context) {
     if (!mounted) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
+
           appBar: AppBar(
             title: const Text('Arrendatarios'),
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.background,
             elevation: 0,
             titleTextStyle: const TextStyle(
-              color: Colors.black,
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
-            iconTheme: const IconThemeData(color: Colors.black),
+            iconTheme: const IconThemeData(color: AppColors.textPrimary),
           ),
           body: _controller.errorMessage != null
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline,
-                          size: 48, color: Colors.red),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
                       const SizedBox(height: 16),
                       Text(_controller.errorMessage!),
                       const SizedBox(height: 16),
@@ -152,194 +163,77 @@ class _TenantsScreenState extends State<TenantsScreen> {
                   ),
                 )
               : _controller.tenants.isEmpty && !_controller.isLoading
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.person_outline,
-                              size: 64,
-                              color: Colors.grey[300]),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No hay arrendatarios',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 64,
+                        color: Colors.grey[300],
                       ),
-                    )
-                  : Column(
-                      children: [
-                        // Search bar
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: TextField(
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value;
-                              });
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Buscar arrendatario...',
-                              prefixIcon: const Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No hay arrendatarios',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: [
+                    // Search bar
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Buscar arrendatario...',
+                          fillColor: AppColors.card,
+
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                         ),
-                        // Tenants list
-                        Expanded(
-                          child: _controller.isLoading
-                              ? const Center(
-                                  child: CircularProgressIndicator())
-                              : RefreshIndicator(
-                                  onRefresh: () =>
-                                      _controller.refreshTenants(context),
-                                  child: ListView.builder(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    itemCount: _filteredTenants.length,
-                                    itemBuilder: (context, index) {
-                                      final tenant = _filteredTenants[index];
-                                      return _TenantCard(
-                                        tenant: tenant,
-                                        isActive: _isTenantActive(tenant),
-                                        onTap: () =>
-                                            _showTenantDetails(tenant),
-                                      );
-                                    },
-                                  ),
-                                ),
-                        ),
-                      ],
+                      ),
                     ),
+                    // Tenants list
+                    Expanded(
+                      child: _controller.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : RefreshIndicator(
+                              onRefresh: () =>
+                                  _controller.refreshTenants(context),
+                              child: ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                itemCount: _filteredTenants.length,
+                                itemBuilder: (context, index) {
+                                  final tenant = _filteredTenants[index];
+                                  return TenantCard(
+                                    tenant: tenant,
+                                    isActive: _isTenantActive(tenant),
+                                    controller: _controller,
+                                    onTap: () => _showTenantDetails(tenant),
+                                  );
+                                },
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
         );
       },
-    );
-  }
-}
-
-class _TenantCard extends StatelessWidget {
-  final Tenant tenant;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _TenantCard({
-    required this.tenant,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE0E0E0)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tenant.nombre,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tenant.apartamento,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6F6F6F),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      isActive ? 'activo' : 'inactivo',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: isActive
-                            ? Colors.green
-                            : Colors.orange,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.email_outlined,
-                      size: 16, color: Color(0xFF6F6F6F)),
-                  const SizedBox(width: 8),
-                  Expanded( 
-                    child: Text(
-                      tenant.email.isEmpty ? 'No proporcionado' : tenant.email,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6F6F6F),
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.phone_outlined,
-                      size: 16, color: Color(0xFF6F6F6F)),
-                  const SizedBox(width: 8),
-                  Text(
-                    tenant.telefono.isEmpty ? 'No proporcionado' : tenant.telefono,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6F6F6F),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

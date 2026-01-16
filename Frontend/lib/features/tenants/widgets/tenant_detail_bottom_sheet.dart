@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
+import 'package:martinez/features/tenants/controllers/tenants_controller.dart';
 import '../../../core/models/tenant.dart';
 
 class TenantDetailBottomSheet extends StatelessWidget {
   final Tenant tenant;
   final VoidCallback onPaymentsPressed;
   final VoidCallback onContractsPressed;
+  final TenantsController controller;
 
   const TenantDetailBottomSheet({
     super.key,
     required this.tenant,
     required this.onPaymentsPressed,
     required this.onContractsPressed,
+    required this.controller,
   });
+
+  String _getApartmentInfo() {
+    return controller.getApartmentInfo(tenant);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
@@ -38,14 +46,16 @@ class TenantDetailBottomSheet extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      tenant.apartamento,
+                      _getApartmentInfo(),
+
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF6F6F6F),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -62,15 +72,23 @@ class TenantDetailBottomSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                color: AppColors.card,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _infoRow('Email', tenant.email.isEmpty ? 'No proporcionado' : tenant.email),
+                  _infoRow(
+                    'Email',
+                    tenant.email.isEmpty ? 'No proporcionado' : tenant.email,
+                  ),
                   const SizedBox(height: 12),
-                  _infoRow('Teléfono', tenant.telefono.isEmpty ? 'No proporcionado' : tenant.telefono),
+                  _infoRow(
+                    'Teléfono',
+                    tenant.telefono.isEmpty
+                        ? 'No proporcionado'
+                        : tenant.telefono,
+                  ),
                   const SizedBox(height: 12),
                   _infoRow(
                     'Estado',
@@ -91,9 +109,9 @@ class TenantDetailBottomSheet extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onPaymentsPressed,
                     icon: const Icon(Icons.receipt_long),
-                    label: const Text('Pagos'),
+                    label: const Text('PAGOS'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1976D2),
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
@@ -103,9 +121,10 @@ class TenantDetailBottomSheet extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onContractsPressed,
                     icon: const Icon(Icons.description),
-                    label: const Text('Contratos'),
+                    label: const Text('CONTRATOS'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF388E3C),
+                      backgroundColor: AppColors.primary,
+
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
@@ -127,7 +146,7 @@ class TenantDetailBottomSheet extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 14,
-            color: Color(0xFF6F6F6F),
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -139,7 +158,7 @@ class TenantDetailBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              value,
+              value.toUpperCase(),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -153,6 +172,7 @@ class TenantDetailBottomSheet extends StatelessWidget {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
             ),
           ),
       ],
