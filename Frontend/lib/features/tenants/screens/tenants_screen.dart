@@ -99,6 +99,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
                 tenant: tenant,
                 allPayments: _allPayments,
                 allContracts: _allContracts,
+                apartmentInfo: _controller.getApartmentInfo(tenant),
               ),
             ),
           );

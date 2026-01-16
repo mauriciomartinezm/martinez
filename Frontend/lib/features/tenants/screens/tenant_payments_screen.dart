@@ -10,12 +10,14 @@ class TenantPaymentsScreen extends StatefulWidget {
   final Tenant tenant;
   final List<PagoMensual> allPayments;
   final List<Contract> allContracts;
+  final String apartmentInfo;
 
   const TenantPaymentsScreen({
     super.key,
     required this.tenant,
     required this.allPayments,
     required this.allContracts,
+    required this.apartmentInfo,
   });
 
   @override
@@ -127,8 +129,8 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Total pagado',
+                          Text(
+                            'Total pagado  (${widget.apartmentInfo})',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
