@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:martinez/core/theme/app_colors.dart';
 import '../controllers/tenants_controller.dart';
 import '../../../core/models/tenant.dart';
-import '../../../core/models/contract.dart';
-import '../../../core/models/pago_mensual.dart';
-import '../../../core/models/apartment.dart';
-import '../../../core/services/api_service.dart';
 import '../widgets/tenant_detail_bottom_sheet.dart';
 import '../widgets/tenant_card.dart';
 import 'tenant_payments_screen.dart';
@@ -21,9 +17,6 @@ class TenantsScreen extends StatefulWidget {
 class _TenantsScreenState extends State<TenantsScreen> {
   late TenantsController _controller;
   String _searchQuery = '';
-  List<Contract> _allContracts = [];
-  List<PagoMensual> _allPayments = [];
-  List<Apartment> _allApartments = [];
 
   @override
   void initState() {
@@ -31,27 +24,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
     _controller = TenantsController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.loadTenants();
-      _loadData();
     });
-  }
-
-  Future<void> _loadData() async {
-    try {
-      final results = await Future.wait([
-        fetchContracts(),
-        fetchPagos(),
-        fetchApartments(),
-      ]);
-      _allContracts = results[0] as List<Contract>;
-      _allPayments = results[1] as List<PagoMensual>;
-      _allApartments = results[2] as List<Apartment>;
-      _controller.setData(_allContracts, _allApartments);
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      // Error al cargar datos
-    }
   }
 
   @override
@@ -88,7 +61,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
 
   bool _isTenantActive(Tenant tenant) {
     // Un arrendatario está activo si tiene al menos un contrato activo
-    return _allContracts.any(
+    return _controller.contracts.any(
       (contract) => contract.tenantId == tenant.id && contract.estado == 'true',
     );
   }
@@ -111,8 +84,8 @@ class _TenantsScreenState extends State<TenantsScreen> {
             MaterialPageRoute(
               builder: (context) => TenantPaymentsScreen(
                 tenant: tenant,
-                allPayments: _allPayments,
-                allContracts: _allContracts,
+                allPayments: _controller.payments,
+                allContracts: _controller.contracts,
                 apartmentInfo: _controller.getApartmentInfo(tenant),
               ),
             ),
@@ -125,7 +98,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
             MaterialPageRoute(
               builder: (context) => TenantContractsScreen(
                 tenant: tenant,
-                allContracts: _allContracts,
+                allContracts: _controller.contracts,
               ),
             ),
           );

@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
 import '../../../core/models/tenant.dart';
 import '../../../core/models/contract.dart';
 import '../../../core/models/apartment.dart';
+import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/building.dart';
+import '../../../core/data/tenants_repository.dart';
 
 class TenantsController extends ChangeNotifier {
+  TenantsController({TenantsRepository? repository})
+      : _repository = repository ?? TenantsRepository.instance;
+
+  final TenantsRepository _repository;
   bool _isLoading = false;
   List<Tenant> _tenants = [];
   String? _errorMessage;
   List<Contract> _contracts = [];
   List<Apartment> _apartments = [];
+  List<PagoMensual> _payments = [];
 
   // Getters
   bool get isLoading => _isLoading;
@@ -18,8 +24,9 @@ class TenantsController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<Contract> get contracts => _contracts;
   List<Apartment> get apartments => _apartments;
+  List<PagoMensual> get payments => _payments;
 
-  // Método para establecer datos cargados
+  // Método para establecer datos cargados (compatibilidad)
   void setData(List<Contract> contracts, List<Apartment> apartments) {
     _contracts = contracts;
     _apartments = apartments;
@@ -73,10 +80,11 @@ class TenantsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Fetch apartments y mapear a tenants
-      // Por ahora usamos un endpoint que devuelve arrendatarios
-      // Si no existe, podemos mapear desde los apartamentos
-      _tenants = await _fetchTenantsFromApi();
+      await _repository.preloadAll();
+      _tenants = await _repository.getTenants();
+      _contracts = await _repository.getContracts();
+      _apartments = await _repository.getApartments();
+      _payments = await _repository.getPayments();
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -92,7 +100,10 @@ class TenantsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _tenants = await _fetchTenantsFromApi();
+      _tenants = await _repository.getTenants(forceRefresh: true);
+      _contracts = await _repository.getContracts(forceRefresh: true);
+      _apartments = await _repository.getApartments(forceRefresh: true);
+      _payments = await _repository.getPayments(forceRefresh: true);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -102,27 +113,4 @@ class TenantsController extends ChangeNotifier {
     }
   }
 
-  Future<List<Tenant>> _fetchTenantsFromApi() async {
-    return await fetchTenants();
-  }
-
-  // Método para obtener pagos de un arrendatario
-  Future<List<Map<String, dynamic>>> getTenantPayments(String tenantId) async {
-    try {
-      // Implementar cuando exista el endpoint
-      return [];
-    } catch (e) {
-      throw Exception('Error al obtener pagos: $e');
-    }
-  }
-
-  // Método para obtener contratos de un arrendatario
-  Future<List<Map<String, dynamic>>> getTenantContracts(String tenantId) async {
-    try {
-      // Implementar cuando exista el endpoint
-      return [];
-    } catch (e) {
-      throw Exception('Error al obtener contratos: $e');
-    }
-  }
 }
