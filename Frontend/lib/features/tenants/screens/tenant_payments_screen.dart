@@ -227,7 +227,54 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                 ],
                               ),
                             ],
-                            if (_controller.getNextIncreaseDate() != null) ...[
+                            if (_controller.hasPendingAnnualIncrease()) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.orange.withOpacity(0.35)),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_amber_rounded,
+                                      size: 20,
+                                      color: Colors.orange,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Aumento anual pendiente',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.orange,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Después de 12 meses no se refleja incremento en el arriendo pagado.',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.orange,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            if (_controller.getNextIncreaseDisplayDate() != null) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -238,7 +285,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Se deberá hacer aumento el ${_controller.formatDate(_controller.getNextIncreaseDate()!)}',
+                                    'Se deberá hacer aumento el ${_controller.formatDate(_controller.getNextIncreaseDisplayDate()!)}',
                                     style: const TextStyle(
                                       fontSize: 13,
                                       color: Colors.lightBlueAccent,

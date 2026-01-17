@@ -10,6 +10,21 @@ import '../../../core/widgets/floating_message.dart';
 class DashboardController extends ChangeNotifier {
   final DataRepository _dataRepo = DataRepository.instance;
   
+  static const List<String> _monthOrder = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+  ];
+
   bool _isLoading = false;
   List<PagoMensual> _pagos = [];
   List<Apartment> _apartments = [];
@@ -120,6 +135,8 @@ class DashboardController extends ChangeNotifier {
         'totalNetoAnterior': 0.0,
         'diferenciaNeto': 0.0,
         'porcentajeDiferencia': 0.0,
+        'pendingIncreaseCount': 0,
+        'pendingIncreaseTenants': <String>[],
       };
     }
 
@@ -203,6 +220,8 @@ class DashboardController extends ChangeNotifier {
 
     final mesAnio = '${mesNombres[currentDate.month - 1]} ${currentDate.year}';
 
+    final pendingTenants = _computePendingIncreaseTenants();
+
     return {
       'totalArriendos': totalArriendos,
       'totalAdministracion': totalAdministracion,
@@ -214,6 +233,8 @@ class DashboardController extends ChangeNotifier {
       'totalNetoAnterior': totalNetoAnterior,
       'diferenciaNeto': diferenciaNeto,
       'porcentajeDiferencia': porcentajeDiferencia,
+      'pendingIncreaseCount': pendingTenants.length,
+      'pendingIncreaseTenants': pendingTenants,
     };
   }
 
@@ -254,6 +275,9 @@ class DashboardController extends ChangeNotifier {
       'totalNetoAnterior': _toDouble(data['totalNetoAnterior']),
       'diferenciaNeto': _toDouble(data['diferenciaNeto']),
       'porcentajeDiferencia': _toDouble(data['porcentajeDiferencia']),
+      'pendingIncreaseCount': _toInt(data['pendingIncreaseCount']),
+      'pendingIncreaseTenants':
+          (data['pendingIncreaseTenants'] as List?)?.map((e) => e.toString()).toList() ?? <String>[],
     };
   }
 
@@ -271,5 +295,95 @@ class DashboardController extends ChangeNotifier {
     
     // Usar caché del servicio o calcular por defecto
     return normalizeStats(_cachedStats ?? calculateStats());
+  }
+
+  List<String> _computePendingIncreaseTenants() {
+    if (_contracts.isEmpty || _pagos.isEmpty) return <String>[];
+
+    final Map<String, List<Contract>> contractsByTenant = {};
+    for (final contract in _contracts) {
+      contractsByTenant.putIfAbsent(contract.tenantId, () => []).add(contract);
+    }
+
+    final List<String> pendingTenants = [];
+
+    contractsByTenant.forEach((tenantId, tenantContracts) {
+      tenantContracts.sort((a, b) => a.fechaInicio.compareTo(b.fechaInicio));
+      final firstContract = tenantContracts.first;
+
+      final increaseDate = _getIncreaseDate(firstContract.fechaInicio);
+      if (increaseDate == null) return; // aún no cumple un año
+
+      final tenantPayments = _pagos
+          .where((p) => p.contratoArriendo.arrendatario.id == tenantId)
+          .toList();
+
+      if (tenantPayments.isEmpty) return;
+
+      tenantPayments.sort((a, b) {
+        final aDate = _parsePagoDate(a);
+        final bDate = _parsePagoDate(b);
+        if (aDate == null || bDate == null) return 0;
+        return bDate.compareTo(aDate); // más recientes primero
+      });
+
+      final baseline = _findRentOnOrBefore(tenantPayments, increaseDate, firstContract.montoMensual);
+      if (baseline == null) return;
+
+      PagoMensual? latestAfterIncrease;
+      for (final pago in tenantPayments) {
+        final pagoDate = _parsePagoDate(pago);
+        if (pagoDate == null) continue;
+        if (pagoDate.isAfter(increaseDate)) {
+          latestAfterIncrease = pago;
+          break;
+        }
+      }
+
+      if (latestAfterIncrease != null && latestAfterIncrease.valorArriendo <= baseline) {
+        pendingTenants.add(firstContract.tenantName);
+      }
+    });
+
+    return pendingTenants;
+  }
+
+  DateTime? _parsePagoDate(PagoMensual pago) {
+    final monthIndex = _monthOrder.indexOf(pago.mes) + 1;
+    final year = int.tryParse(pago.anio) ?? 0;
+    if (year <= 0 || monthIndex <= 0) return null;
+    return DateTime(year, monthIndex);
+  }
+
+  DateTime? _getIncreaseDate(DateTime contractStart) {
+    final now = DateTime.now();
+    int yearsPassed = now.year - contractStart.year;
+
+    if (now.month < contractStart.month ||
+        (now.month == contractStart.month && now.day < contractStart.day)) {
+      yearsPassed--;
+    }
+
+    if (yearsPassed >= 1) {
+      return DateTime(
+        contractStart.year + yearsPassed,
+        contractStart.month,
+        contractStart.day,
+      );
+    }
+
+    return null;
+  }
+
+  double? _findRentOnOrBefore(List<PagoMensual> pagos, DateTime targetDate, double fallback) {
+    for (final pago in pagos) {
+      final pagoDate = _parsePagoDate(pago);
+      if (pagoDate == null) continue;
+      if (!pagoDate.isAfter(targetDate)) {
+        return pago.valorArriendo;
+      }
+    }
+
+    return fallback;
   }
 }

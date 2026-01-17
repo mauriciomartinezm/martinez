@@ -43,6 +43,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       listenable: _controller,
       builder: (context, _) {
         final stats = _controller.getDisplayStats();
+        final int pendingCount = stats['pendingIncreaseCount'] ?? 0;
+        final List<dynamic> pendingTenantsRaw = stats['pendingIncreaseTenants'] ?? [];
+        final List<String> pendingTenants = pendingTenantsRaw.map((e) => e.toString()).toList();
         return Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
@@ -65,6 +68,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           onRefresh: () => _controller.refreshData(context),
                         ),
                         const SizedBox(height: 16),
+
+                        if (pendingCount > 0)
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.orange.withOpacity(0.35)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        pendingCount == 1
+                                            ? '1 arrendatario sin aumento anual aplicado'
+                                            : '$pendingCount arrendatarios sin aumento anual aplicado',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                      if (pendingTenants.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          pendingTenants.join(', '),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        if (pendingCount > 0) const SizedBox(height: 12),
 
                         // Main totals row
                         Row(

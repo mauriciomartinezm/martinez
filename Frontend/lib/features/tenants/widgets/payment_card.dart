@@ -110,6 +110,35 @@ class PaymentCard extends StatelessWidget {
                 ),
                 Row(
                   children: [
+                    if (controller.isPaymentMissingIncrease(pago, previousPayment))
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.orange.withOpacity(0.4)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 10,
+                              color: Colors.orange,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Aumento pendiente',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     if (previousPayment != null && 
                         previousPayment!.valorArriendo > 0 &&
                         pago.valorArriendo != previousPayment!.valorArriendo)
