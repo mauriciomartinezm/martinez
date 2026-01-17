@@ -294,9 +294,13 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                         itemCount: _controller.payments.length,
                         itemBuilder: (context, index) {
                           final pago = _controller.payments[index];
+                          final previousPayment = index < _controller.payments.length - 1
+                              ? _controller.payments[index + 1]
+                              : null;
                           return PaymentCard(
                             pago: pago,
                             controller: _controller,
+                            previousPayment: previousPayment,
                           );
                         },
                       ),

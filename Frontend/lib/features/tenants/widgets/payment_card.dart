@@ -6,8 +6,14 @@ import '../controllers/tenant_payments_controller.dart';
 class PaymentCard extends StatelessWidget {
   final PagoMensual pago;
   final TenantPaymentsController controller;
+  final PagoMensual? previousPayment;
 
-  const PaymentCard({super.key, required this.pago, required this.controller});
+  const PaymentCard({
+    super.key, 
+    required this.pago, 
+    required this.controller,
+    this.previousPayment,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,9 +101,52 @@ class PaymentCard extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 12),
-            _DetailRow(
-              label: 'Arriendo',
-              value: controller.formatCurrency(pago.valorArriendo),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Arriendo',
+                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                ),
+                Row(
+                  children: [
+                    if (previousPayment != null && 
+                        previousPayment!.valorArriendo > 0 &&
+                        pago.valorArriendo != previousPayment!.valorArriendo)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getPercentageColor(pago.valorArriendo, previousPayment!.valorArriendo).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getPercentageIcon(pago.valorArriendo, previousPayment!.valorArriendo),
+                              size: 10,
+                              color: _getPercentageColor(pago.valorArriendo, previousPayment!.valorArriendo),
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${_calculatePercentageChange(pago.valorArriendo, previousPayment!.valorArriendo).abs().toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: _getPercentageColor(pago.valorArriendo, previousPayment!.valorArriendo),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Text(
+                      controller.formatCurrency(pago.valorArriendo),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             _DetailRow(
@@ -135,6 +184,19 @@ class PaymentCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _calculatePercentageChange(double current, double previous) {
+    if (previous == 0) return 0;
+    return ((current - previous) / previous) * 100;
+  }
+
+  Color _getPercentageColor(double current, double previous) {
+    return current > previous ? Colors.green : Colors.red;
+  }
+
+  IconData _getPercentageIcon(double current, double previous) {
+    return current > previous ? Icons.arrow_upward : Icons.arrow_downward;
   }
 }
 
