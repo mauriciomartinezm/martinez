@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:martinez/core/theme/app_colors.dart';
 import '../controllers/contracts_controller.dart';
 import '../../../core/models/contract.dart';
-import '../../../core/models/apartment.dart';
-import '../../../core/services/api_service.dart';
 import '../widgets/contract_card.dart';
 import '../widgets/contract_details_dialog.dart';
 
@@ -18,7 +16,6 @@ class _ContractsScreenState extends State<ContractsScreen> {
   late ContractsController _controller;
   String _searchQuery = '';
   String _filterStatus = 'todos';
-  List<Apartment> _allApartments = [];
 
   @override
   void initState() {
@@ -26,21 +23,7 @@ class _ContractsScreenState extends State<ContractsScreen> {
     _controller = ContractsController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.loadContracts();
-      _loadApartments();
     });
-  }
-
-  Future<void> _loadApartments() async {
-    try {
-      final apartments = await fetchApartments();
-      _allApartments = apartments;
-      _controller.setData(apartments);
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      // Si falla la carga de apartamentos, se omite para no romper la pantalla.
-    }
   }
 
   @override

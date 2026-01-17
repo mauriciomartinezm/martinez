@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/api_service.dart';
-import '../../../core/models/contract.dart';
 import '../../../core/models/apartment.dart';
+import '../../../core/models/contract.dart';
 import '../../../core/models/building.dart';
+import '../../../core/data/contracts_repository.dart';
 
 class ContractsController extends ChangeNotifier {
+  ContractsController({ContractsRepository? repository})
+      : _repository = repository ?? ContractsRepository.instance;
+
+  final ContractsRepository _repository;
   bool _isLoading = false;
   List<Contract> _contracts = [];
   String? _errorMessage;
@@ -15,7 +19,7 @@ class ContractsController extends ChangeNotifier {
   List<Contract> get contracts => _contracts;
   String? get errorMessage => _errorMessage;
 
-  // Método para establecer datos cargados
+  // Método para establecer datos cargados (compatibilidad)
   void setData(List<Apartment> apartments) {
     _apartments = apartments;
     notifyListeners();
@@ -27,7 +31,8 @@ class ContractsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _contracts = await fetchContracts();
+      _contracts = await _repository.getContracts();
+      _apartments = await _repository.getApartments();
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -43,7 +48,8 @@ class ContractsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _contracts = await fetchContracts();
+      _contracts = await _repository.getContracts(forceRefresh: true);
+      _apartments = await _repository.getApartments(forceRefresh: true);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -74,8 +80,6 @@ class ContractsController extends ChangeNotifier {
   // Método para obtener información del apartamento y edificio del contrato
   String getApartmentInfo(Contract contract) {
     final apartmentId = contract.apartamentoId;
-    debugPrint('Buscando info para el apartamentoId: $apartmentId');
-    debugPrint('Total de apartamentos cargados: ${_apartments.length}');
     // Buscar el apartamento correspondiente para obtener el edificio
     final apartment = _apartments.firstWhere(
       (apt) => apt.id == apartmentId,
@@ -86,8 +90,6 @@ class ContractsController extends ChangeNotifier {
         piso: '',
       ),
     );
-
-    debugPrint('Apartamento encontrado: ${apartment.id}, Edificio: ${apartment.edificio.nombre}, Piso: ${apartment.piso}');
     if (apartmentId.isEmpty) {
       return 'No asignado';
     }
