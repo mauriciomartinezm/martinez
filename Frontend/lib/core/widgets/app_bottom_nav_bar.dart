@@ -28,11 +28,11 @@ class AppBottomNavBar extends StatelessWidget {
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.list_alt),
+          icon: Icon(Icons.apartment),
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.people_outline),
+          icon: Icon(Icons.people),
           label: '',
         ),
         BottomNavigationBarItem(

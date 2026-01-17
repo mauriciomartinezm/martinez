@@ -26,10 +26,11 @@ class ApartmentCard extends StatelessWidget {
         ),
         child: Row(
           children: [
+              // Icon(Icons.apartment) es un edificio grande, cambiando a un ícono más adecuado.
               Icon(
-                isActive ? Icons.lock_open : Icons.lock,
+                Icons.home,
                 size: 48,
-                color: AppColors.primary,
+                color: AppColors.textSecondary,
               ),
               const SizedBox(width: 16),
               Expanded(

@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class Contract {
   final String id;
   final String tenantId;

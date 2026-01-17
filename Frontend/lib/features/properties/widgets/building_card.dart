@@ -29,7 +29,8 @@ class BuildingCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.home, size: 48, color: AppColors.textSecondary),
+            // Cambiando a un ícono más representativo para un edificio.
+            Icon(Icons.business, size: 48, color: AppColors.textSecondary),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
