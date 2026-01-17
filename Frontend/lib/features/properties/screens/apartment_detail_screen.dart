@@ -3,14 +3,14 @@ import 'package:martinez/core/theme/app_colors.dart';
 import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/contract.dart';
 import '../../../core/services/api_service.dart';
-import '../../home/logic/home_controller.dart';
+import '../controllers/properties_controller.dart';
 import '../../tenants/widgets/payment_card.dart';
 import '../../tenants/controllers/tenant_payments_controller.dart';
 
 class ApartmentDetailScreen extends StatefulWidget {
   const ApartmentDetailScreen({super.key, required this.controller});
 
-  final HomeController controller;
+  final PropertiesController controller;
 
   @override
   State<ApartmentDetailScreen> createState() => _ApartmentDetailScreenState();
@@ -60,7 +60,7 @@ class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
           ),
         ),
       );
-      debugPrint('Contrato activo cargadoo: ${_activeContract!.id}');
+      //debugPrint('Contrato activo cargadoo: ${_activeContract!.id}');
       if (mounted) {
         setState(() {});
       }
@@ -79,11 +79,11 @@ class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
     try {
       final allPayments = await fetchPagos();
       final apartmentId = widget.controller.selectedApartment!.id;
-      debugPrint('Cargando pagos para el apartamento ID: $apartmentId');
+      //debugPrint('Cargando pagos para el apartamento ID: $apartmentId');
       _apartmentPayments = allPayments
           .where((pago) => pago.contratoArriendo.apartamento.id == apartmentId)
           .toList();
-      debugPrint('Pagos encontrados: ${_apartmentPayments.length}');
+      //debugPrint('Pagos encontrados: ${_apartmentPayments.length}');
       _apartmentPayments.sort((a, b) {
         final yearCompare = b.anio.compareTo(a.anio);
         if (yearCompare != 0) return yearCompare;

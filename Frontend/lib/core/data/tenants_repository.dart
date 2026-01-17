@@ -2,57 +2,44 @@ import '../models/tenant.dart';
 import '../models/contract.dart';
 import '../models/apartment.dart';
 import '../models/pago_mensual.dart';
-import '../services/api_service.dart';
-import 'contracts_repository.dart';
+import 'data_repository.dart';
 
-/// Repositorio con caché en memoria para arrendatarios y pagos.
-/// Reutiliza ContractsRepository para contratos y apartamentos.
+/// Repositorio para arrendatarios que usa el DataRepository global.
 class TenantsRepository {
   TenantsRepository._();
   static final TenantsRepository instance = TenantsRepository._();
 
-  final ContractsRepository _contractsRepository = ContractsRepository.instance;
-
-  List<Tenant>? _tenants;
-  List<PagoMensual>? _payments;
+  final DataRepository _dataRepo = DataRepository.instance;
 
   Future<void> preloadAll({bool forceRefresh = false}) async {
-    await Future.wait([
-      getTenants(forceRefresh: forceRefresh),
-      getPayments(forceRefresh: forceRefresh),
-      _contractsRepository.getContracts(forceRefresh: forceRefresh),
-      _contractsRepository.getApartments(forceRefresh: forceRefresh),
-    ]);
+    await _dataRepo.preloadAll(forceRefresh: forceRefresh);
   }
 
   Future<List<Tenant>> getTenants({bool forceRefresh = false}) async {
-    if (forceRefresh || _tenants == null) {
-      _tenants = await fetchTenants();
-    }
-    return _tenants!;
-  }
-
-  Future<List<PagoMensual>> getPayments({bool forceRefresh = false}) async {
-    if (forceRefresh || _payments == null) {
-      _payments = await fetchPagos();
-    }
-    return _payments!;
+    return _dataRepo.getTenants(forceRefresh: forceRefresh);
   }
 
   Future<List<Contract>> getContracts({bool forceRefresh = false}) async {
-    return _contractsRepository.getContracts(forceRefresh: forceRefresh);
+    return _dataRepo.getContracts(forceRefresh: forceRefresh);
   }
 
   Future<List<Apartment>> getApartments({bool forceRefresh = false}) async {
-    return _contractsRepository.getApartments(forceRefresh: forceRefresh);
+    return _dataRepo.getApartments(forceRefresh: forceRefresh);
   }
 
-  List<Tenant> get cachedTenants => _tenants ?? const [];
-  List<PagoMensual> get cachedPayments => _payments ?? const [];
+  Future<List<PagoMensual>> getPayments({bool forceRefresh = false}) async {
+    return _dataRepo.getPayments(forceRefresh: forceRefresh);
+  }
+
+  List<Tenant> get cachedTenants => _dataRepo.cachedTenants;
+  List<Contract> get cachedContracts => _dataRepo.cachedContracts;
+  List<Apartment> get cachedApartments => _dataRepo.cachedApartments;
+  List<PagoMensual> get cachedPayments => _dataRepo.cachedPayments;
 
   void clearCache() {
-    _tenants = null;
-    _payments = null;
-    _contractsRepository.clearCache();
+    _dataRepo.clearTenantsCache();
+    _dataRepo.clearContractsCache();
+    _dataRepo.clearApartmentsCache();
+    _dataRepo.clearPaymentsCache();
   }
 }

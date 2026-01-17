@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/data/data_repository.dart';
 import '../../../core/services/dashboard_cache_service.dart';
 import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/apartment.dart';
@@ -8,12 +8,15 @@ import '../../../core/models/contract.dart';
 import '../../../core/widgets/floating_message.dart';
 
 class DashboardController extends ChangeNotifier {
+  final DataRepository _dataRepo = DataRepository.instance;
+  
   bool _isLoading = false;
   List<PagoMensual> _pagos = [];
   List<Apartment> _apartments = [];
   List<Contract> _contracts = [];
   String? _errorMessage;
   Map<String, dynamic>? _cachedStats;
+  Map<String, dynamic>? _calculatedStats;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -27,8 +30,7 @@ class DashboardController extends ChangeNotifier {
     final cachedStats = await DashboardCacheService.loadStats();
     _cachedStats = cachedStats;
     notifyListeners();
-    
-    // Si no hay caché, cargar datos de la API
+    // Si no hay caché, cargar datos del repositorio (ya precargados)
     if (cachedStats == null) {
       await loadInitialData();
     }
@@ -40,15 +42,24 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
     
     try {
-      _apartments = await fetchApartments();
-      _pagos = await fetchPagos();
-      _contracts = await fetchContracts();
+      // Obtener datos del repositorio (ya están en caché desde HomeScreen)
+      _apartments = _dataRepo.cachedApartments;
+      _pagos = _dataRepo.cachedPayments;
+      _contracts = _dataRepo.cachedContracts;
+      
+      // Si por alguna razón no hay datos en caché, cargarlos
+      if (_apartments.isEmpty || _pagos.isEmpty || _contracts.isEmpty) {
+        _apartments = await _dataRepo.getApartments();
+        _pagos = await _dataRepo.getPayments();
+        _contracts = await _dataRepo.getContracts();
+      }
+      
       _isLoading = false;
       notifyListeners();
       
-      // Guardar las estadísticas calculadas en caché
-      final stats = calculateStats();
-      await DashboardCacheService.saveStats(stats);
+      // Calcular y guardar las estadísticas en caché
+      _calculatedStats = calculateStats();
+      await DashboardCacheService.saveStats(_calculatedStats!);
     } catch (e) {
       _errorMessage = 'Error al cargar datos: $e';
       _isLoading = false;
@@ -67,16 +78,16 @@ class DashboardController extends ChangeNotifier {
     );
     
     try {
-      await fetchBuildings();
-      _apartments = await fetchApartments();
-      _pagos = await fetchPagos();
-      _contracts = await fetchContracts();
+      // Forzar refresh desde el repositorio global
+      _apartments = await _dataRepo.getApartments(forceRefresh: true);
+      _pagos = await _dataRepo.getPayments(forceRefresh: true);
+      _contracts = await _dataRepo.getContracts(forceRefresh: true);
       _isLoading = false;
       notifyListeners();
       
-      // Actualizar caché con nuevas estadísticas
-      final stats = calculateStats();
-      await DashboardCacheService.saveStats(stats);
+      // Calcular y actualizar caché con nuevas estadísticas
+      _calculatedStats = calculateStats();
+      await DashboardCacheService.saveStats(_calculatedStats!);
       
       hideLoadingMessage();
       FloatingMessage.showSuccess(
@@ -163,8 +174,6 @@ class DashboardController extends ChangeNotifier {
     double totalEpresedi = 0;
     double totalNetoAnterior = 0;
     Set<String> apartamentosArrendados = {};
-
-    debugPrint('Pagos del mes: ${pagosDelMes.length}');
     
     // Calcular apartamentos arrendados directamente desde la lista de apartamentos activos
     apartamentosArrendados.addAll(
@@ -249,8 +258,18 @@ class DashboardController extends ChangeNotifier {
   }
 
   Map<String, dynamic> getDisplayStats() {
-    return normalizeStats(
-      _pagos.isNotEmpty ? calculateStats() : (_cachedStats ?? calculateStats()),
-    );
+    // Si ya tenemos estadísticas calculadas, usarlas
+    if (_calculatedStats != null) {
+      return normalizeStats(_calculatedStats!);
+    }
+    
+    // Si tenemos pagos, calcular y cachear
+    if (_pagos.isNotEmpty) {
+      _calculatedStats = calculateStats();
+      return normalizeStats(_calculatedStats!);
+    }
+    
+    // Usar caché del servicio o calcular por defecto
+    return normalizeStats(_cachedStats ?? calculateStats());
   }
 }

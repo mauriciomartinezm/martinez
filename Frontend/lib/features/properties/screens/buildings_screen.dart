@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:martinez/core/theme/app_colors.dart';
-import '../../home/logic/home_controller.dart';
+import '../controllers/properties_controller.dart';
 import '../widgets/building_card.dart';
 
 class BuildingsScreen extends StatelessWidget {
   const BuildingsScreen({super.key, required this.controller});
 
-  final HomeController controller;
+  final PropertiesController controller;
 
   @override
   Widget build(BuildContext context) {

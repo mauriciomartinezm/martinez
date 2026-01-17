@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'auth_service.dart';
+//import 'auth_service.dart';
 
 /// Controller for authentication feature.
 class AuthController extends ChangeNotifier {
-  AuthController({AuthService? service}) : _service = service ?? const AuthService();
+  //AuthController({AuthService? service}) : _service = service ?? const AuthService();
 
-  final AuthService _service;
+  //final AuthService _service;
   final TextEditingController userController = TextEditingController();
   final TextEditingController passController = TextEditingController();
 

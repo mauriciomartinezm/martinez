@@ -75,7 +75,7 @@ class TenantPaymentsController extends ChangeNotifier {
   }
 
   int getPaymentsSinceContract() {
-    debugPrint('Calculando pagos desde el último aumento...');
+    //debugPrint('Calculando pagos desde el último aumento...');
     if (_firstContract == null) return _payments.length;
     
     // Obtener la fecha del último aumento realizado
@@ -84,7 +84,7 @@ class TenantPaymentsController extends ChangeNotifier {
     // Si no ha habido ningún aumento, contar desde el primer contrato
     final countFromDate = lastIncreaseDate ?? _firstContract!.fechaInicio;
     
-    debugPrint('Contando desde: $countFromDate');
+    //debugPrint('Contando desde: $countFromDate');
     int count = 0;
     
     for (var pago in _payments) {
@@ -103,7 +103,7 @@ class TenantPaymentsController extends ChangeNotifier {
       }
     }
     
-    debugPrint('Pagos desde último aumento: $count');
+    //debugPrint('Pagos desde último aumento: $count');
     return count;
   }
 

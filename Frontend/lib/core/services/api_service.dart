@@ -59,13 +59,14 @@ Future<List<Contract>> fetchContracts() async {
   final response = await http.get(Uri.parse('$apiUrl/contratos'));
   if (response.statusCode == 200) {
     List jsonResponse = json.decode(response.body);
-    
+    /*
     // Debug: imprimir el primer contrato RAW
     if (jsonResponse.isNotEmpty) {
       debugPrint('===== CONTRATO RAW (primer elemento) =====');
       debugPrint(jsonEncode(jsonResponse.first));
       debugPrint('==========================================');
     }
+    */
     
     return jsonResponse.map((contract) => Contract.fromJson(contract)).toList();
   } else {

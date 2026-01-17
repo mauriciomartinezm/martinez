@@ -43,8 +43,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       listenable: _controller,
       builder: (context, _) {
         final stats = _controller.getDisplayStats();
-        debugPrint('Estadísticas mostradas: $stats');
-
         return Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
