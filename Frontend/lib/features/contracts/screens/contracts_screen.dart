@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:martinez/core/theme/app_colors.dart';
 import '../controllers/contracts_controller.dart';
 import '../../../core/models/contract.dart';
-import '../widgets/contract_detail_bottom_sheet.dart';
+import '../../../core/models/apartment.dart';
+import '../../../core/services/api_service.dart';
+import '../widgets/contract_card.dart';
+import '../widgets/contract_details_dialog.dart';
 
 class ContractsScreen extends StatefulWidget {
   const ContractsScreen({super.key});
@@ -14,6 +18,7 @@ class _ContractsScreenState extends State<ContractsScreen> {
   late ContractsController _controller;
   String _searchQuery = '';
   String _filterStatus = 'todos';
+  List<Apartment> _allApartments = [];
 
   @override
   void initState() {
@@ -21,7 +26,21 @@ class _ContractsScreenState extends State<ContractsScreen> {
     _controller = ContractsController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.loadContracts();
+      _loadApartments();
     });
+  }
+
+  Future<void> _loadApartments() async {
+    try {
+      final apartments = await fetchApartments();
+      _allApartments = apartments;
+      _controller.setData(apartments);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      // Si falla la carga de apartamentos, se omite para no romper la pantalla.
+    }
   }
 
   @override
@@ -51,34 +70,19 @@ class _ContractsScreenState extends State<ContractsScreen> {
           .toList();
     }
 
+    // Ordenar por fecha de vencimiento (próximos a vencerse primero)
+    filtered.sort((a, b) {
+      if (a.fechaFin == null && b.fechaFin == null) return 0;
+      if (a.fechaFin == null) return 1;
+      if (b.fechaFin == null) return -1;
+      return b.fechaFin!.compareTo(a.fechaFin!);
+    });
+
     return filtered;
   }
 
   void _showContractDetails(Contract contract) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => ContractDetailBottomSheet(
-        contract: contract,
-        onDownloadPressed: () {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Descargando contrato...')),
-          );
-          // TODO: Implementar descarga
-        },
-        onRenewPressed: () {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Abriendo renovación...')),
-          );
-          // TODO: Implementar renovación
-        },
-      ),
-    );
+    ContractDetailsDialog.show(context, contract);
   }
 
   @override
@@ -198,7 +202,7 @@ class _ContractsScreenState extends State<ContractsScreen> {
                                     itemCount: _filteredContracts.length,
                                     itemBuilder: (context, index) {
                                       final contract = _filteredContracts[index];
-                                      return _ContractCard(
+                                      return ContractCard(
                                         contract: contract,
                                         controller: _controller,
                                         onTap: () =>
@@ -225,169 +229,16 @@ class _ContractsScreenState extends State<ContractsScreen> {
           _filterStatus = value;
         });
       },
-      backgroundColor:
-          isSelected ? const Color(0xFF1976D2) : const Color(0xFFF5F5F5),
+      backgroundColor: isSelected ? AppColors.primary : Colors.grey[200],
+      selectedColor: AppColors.primary,
+      side: isSelected 
+          ? BorderSide.none 
+          : BorderSide(color: Colors.grey[300]!),
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.black,
         fontWeight: FontWeight.w500,
       ),
-    );
-  }
-}
-
-class _ContractCard extends StatelessWidget {
-  final Contract contract;
-  final ContractsController controller;
-  final VoidCallback onTap;
-
-  const _ContractCard({
-    required this.contract,
-    required this.controller,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isExpiringSoon = controller.isContractExpiringSoon(contract);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isExpiringSoon ? Colors.orange : const Color(0xFFE0E0E0),
-            width: isExpiringSoon ? 2 : 1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          contract.tenantName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          contract.apartamento,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6F6F6F),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: contract.estado == 'vigente'
-                          ? Colors.green.withOpacity(0.1)
-                          : contract.estado == 'vencido'
-                              ? Colors.red.withOpacity(0.1)
-                              : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      contract.estado,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: contract.estado == 'vigente'
-                            ? Colors.green
-                            : contract.estado == 'vencido'
-                                ? Colors.red
-                                : Colors.orange,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.attach_money,
-                          size: 16, color: Color(0xFF6F6F6F)),
-                      const SizedBox(width: 8),
-                      Text(
-                        controller.formatCurrency(contract.montoMensual),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (contract.fechaFin != null)
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today,
-                            size: 16, color: Color(0xFF6F6F6F)),
-                        const SizedBox(width: 8),
-                        Text(
-                          controller.formatDate(contract.fechaFin!),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6F6F6F),
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-              if (isExpiringSoon) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.warning, size: 14, color: Colors.orange),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Vence en ${controller.getDaysUntilExpiration(contract)} días',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
+      showCheckmark: false,
     );
   }
 }

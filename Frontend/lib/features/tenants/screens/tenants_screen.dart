@@ -61,15 +61,29 @@ class _TenantsScreenState extends State<TenantsScreen> {
   }
 
   List<Tenant> get _filteredTenants {
+    List<Tenant> tenants;
     if (_searchQuery.isEmpty) {
-      return _controller.tenants;
+      tenants = _controller.tenants;
+    } else {
+      tenants = _controller.tenants
+          .where(
+            (tenant) =>
+                tenant.nombre.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
+          .toList();
     }
-    return _controller.tenants
-        .where(
-          (tenant) =>
-              tenant.nombre.toLowerCase().contains(_searchQuery.toLowerCase()),
-        )
-        .toList();
+    
+    // Ordenar: primero activos, luego inactivos
+    tenants.sort((a, b) {
+      final aActive = _isTenantActive(a);
+      final bActive = _isTenantActive(b);
+      
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+      return 0;
+    });
+    
+    return tenants;
   }
 
   bool _isTenantActive(Tenant tenant) {
