@@ -5,6 +5,7 @@ import '../../../core/models/apartment.dart';
 import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/building.dart';
 import '../../../core/data/tenants_repository.dart';
+import 'tenant_payments_controller.dart';
 
 class TenantsController extends ChangeNotifier {
   TenantsController({TenantsRepository? repository})
@@ -111,6 +112,13 @@ class TenantsController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Detecta si un arrendatario tiene aumento anual pendiente
+  bool hasPendingIncrease(Tenant tenant) {
+    final paymentsController = TenantPaymentsController();
+    paymentsController.loadPayments(tenant.id, _payments, _contracts);
+    return paymentsController.hasPendingAnnualIncrease();
   }
 
 }

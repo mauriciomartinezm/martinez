@@ -142,7 +142,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                               _controller.getTotalPaid(),
                             ),
                             style: const TextStyle(
-                              fontSize: 28,
+                              fontSize: 25,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -240,23 +240,28 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(
-                                      Icons.warning_amber_rounded,
-                                      size: 20,
-                                      color: Colors.orange,
-                                    ),
-                                    const SizedBox(width: 8),
+                                    
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Text(
-                                            'Aumento anual pendiente',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.orange,
-                                            ),
+                                          Row(
+                                            children: const [
+                                              Icon(
+                                                Icons.warning_amber_rounded,
+                                                size: 16,
+                                                color: Colors.orange,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'Aumento anual pendiente',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.orange,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
@@ -297,6 +302,8 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                             ],
                             const SizedBox(height: 8),
                           ],
+                              /*
+
                           Row(
                             children: [
                               const Icon(
@@ -314,6 +321,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                               ),
                             ],
                           ),
+                          */
                           Row(
                             children: [
                               const Icon(

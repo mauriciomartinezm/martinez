@@ -6,6 +6,7 @@ import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/apartment.dart';
 import '../../../core/models/contract.dart';
 import '../../../core/widgets/floating_message.dart';
+import '../../tenants/controllers/tenant_payments_controller.dart';
 
 class DashboardController extends ChangeNotifier {
   final DataRepository _dataRepo = DataRepository.instance;
@@ -311,79 +312,15 @@ class DashboardController extends ChangeNotifier {
       tenantContracts.sort((a, b) => a.fechaInicio.compareTo(b.fechaInicio));
       final firstContract = tenantContracts.first;
 
-      final increaseDate = _getIncreaseDate(firstContract.fechaInicio);
-      if (increaseDate == null) return; // aún no cumple un año
-
-      final tenantPayments = _pagos
-          .where((p) => p.contratoArriendo.arrendatario.id == tenantId)
-          .toList();
-
-      if (tenantPayments.isEmpty) return;
-
-      tenantPayments.sort((a, b) {
-        final aDate = _parsePagoDate(a);
-        final bDate = _parsePagoDate(b);
-        if (aDate == null || bDate == null) return 0;
-        return bDate.compareTo(aDate); // más recientes primero
-      });
-
-      final baseline = _findRentOnOrBefore(tenantPayments, increaseDate, firstContract.montoMensual);
-      if (baseline == null) return;
-
-      PagoMensual? latestAfterIncrease;
-      for (final pago in tenantPayments) {
-        final pagoDate = _parsePagoDate(pago);
-        if (pagoDate == null) continue;
-        if (pagoDate.isAfter(increaseDate)) {
-          latestAfterIncrease = pago;
-          break;
-        }
-      }
-
-      if (latestAfterIncrease != null && latestAfterIncrease.valorArriendo <= baseline) {
+      // Usar TenantPaymentsController para validar aumento pendiente
+      final paymentsController = TenantPaymentsController();
+      paymentsController.loadPayments(tenantId, _pagos, _contracts);
+      
+      if (paymentsController.hasPendingAnnualIncrease()) {
         pendingTenants.add(firstContract.tenantName);
       }
     });
 
     return pendingTenants;
-  }
-
-  DateTime? _parsePagoDate(PagoMensual pago) {
-    final monthIndex = _monthOrder.indexOf(pago.mes) + 1;
-    final year = int.tryParse(pago.anio) ?? 0;
-    if (year <= 0 || monthIndex <= 0) return null;
-    return DateTime(year, monthIndex);
-  }
-
-  DateTime? _getIncreaseDate(DateTime contractStart) {
-    final now = DateTime.now();
-    int yearsPassed = now.year - contractStart.year;
-
-    if (now.month < contractStart.month ||
-        (now.month == contractStart.month && now.day < contractStart.day)) {
-      yearsPassed--;
-    }
-
-    if (yearsPassed >= 1) {
-      return DateTime(
-        contractStart.year + yearsPassed,
-        contractStart.month,
-        contractStart.day,
-      );
-    }
-
-    return null;
-  }
-
-  double? _findRentOnOrBefore(List<PagoMensual> pagos, DateTime targetDate, double fallback) {
-    for (final pago in pagos) {
-      final pagoDate = _parsePagoDate(pago);
-      if (pagoDate == null) continue;
-      if (!pagoDate.isAfter(targetDate)) {
-        return pago.valorArriendo;
-      }
-    }
-
-    return fallback;
   }
 }

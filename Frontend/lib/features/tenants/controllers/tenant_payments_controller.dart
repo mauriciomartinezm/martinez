@@ -205,9 +205,6 @@ class TenantPaymentsController extends ChangeNotifier {
     final nextIncreaseDate = getNextIncreaseDate();
     if (increaseDate == null || _payments.isEmpty) return false;
 
-    final baseline = _findRentOnOrBefore(increaseDate);
-    if (baseline == null) return false;
-
     final cyclePayments = _payments.where((p) {
       final date = _parsePagoDate(p);
       if (date == null) return false;
@@ -218,8 +215,8 @@ class TenantPaymentsController extends ChangeNotifier {
 
     if (cyclePayments.isEmpty) return false;
 
-    final anyIncreaseApplied = cyclePayments.any((p) => p.valorArriendo > baseline);
-    return !anyIncreaseApplied;
+    // Verificar si algún pago del ciclo tiene el aumento pendiente
+    return cyclePayments.any((pago) => isPaymentMissingIncrease(pago, null));
   }
 
   /// Indica si un pago concreto ocurre después del aniversario y mantiene el mismo arriendo.
@@ -229,18 +226,19 @@ class TenantPaymentsController extends ChangeNotifier {
     if (increaseDate == null) return false;
 
     final pagoDate = _parsePagoDate(pago);
+    /*
     debugPrint('==========================================================');
     debugPrint('Fecha del pago: $pagoDate');
     debugPrint('Fecha de aumento: $increaseDate');
     debugPrint('Valor del pago: ${pago.valorArriendo}');
     debugPrint('Valor del pago previo: ${previousPayment?.valorArriendo}');
     debugPrint('==========================================================');
-
+    */
     if (pagoDate == null || !_isSameOrAfterMonth(pagoDate, increaseDate)) return false;
     if (nextIncreaseDate != null && !_isBeforeMonth(pagoDate, nextIncreaseDate)) return false;
 
     final baseline = _findRentOnOrBefore(increaseDate);
-    debugPrint('Valor base para comparación: $baseline');
+    //debugPrint('Valor base para comparación: $baseline');
     if (baseline == null) return false;
 
     // Si ya hubo un aumento en el ciclo (hasta este pago), no marcar pendiente
@@ -266,10 +264,12 @@ class TenantPaymentsController extends ChangeNotifier {
   }
 
   double? _findRentOnOrBefore(DateTime targetDate) {
+    debugPrint('Buscando valor base para aumento anual ANTES de: $targetDate');    
     for (final pago in _payments) {
       final pagoDate = _parsePagoDate(pago);
       if (pagoDate == null) continue;
-      if (!_isAfterMonth(pagoDate, targetDate)) {
+      if (_isBeforeMonth(pagoDate, targetDate)) {
+        debugPrint('Encontrado pago para baseline: ${pago.valorArriendo} en $pagoDate');
         return pago.valorArriendo;
       }
     }
