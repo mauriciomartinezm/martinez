@@ -117,6 +117,7 @@ class TenantDetailBottomSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
+                /*
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: onContractsPressed,
@@ -128,7 +129,7 @@ class TenantDetailBottomSheet extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
-                ),
+                ),*/
               ],
             ),
             const SizedBox(height: 16),
