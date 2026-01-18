@@ -3,7 +3,6 @@ import 'package:martinez/core/theme/app_colors.dart';
 import '../controllers/contracts_controller.dart';
 import '../../../core/models/contract.dart';
 import '../widgets/contract_card.dart';
-import '../widgets/contract_details_dialog.dart';
 
 class ContractsScreen extends StatefulWidget {
   const ContractsScreen({super.key});
@@ -53,20 +52,26 @@ class _ContractsScreenState extends State<ContractsScreen> {
           .toList();
     }
 
-    // Ordenar por fecha de vencimiento (próximos a vencerse primero)
+    // Ordenar: vigentes primero (por fecha próxima a vencer), luego vencidos
     filtered.sort((a, b) {
+      final now = DateTime.now();
+      final aIsActive = a.estado == 'true';
+      final bIsActive = b.estado == 'true';
+
+      // Si uno es vigente y otro no, el vigente va primero
+      if (aIsActive && !bIsActive) return -1;
+      if (!aIsActive && bIsActive) return 1;
+
+      // Si ambos son vigentes o ambos vencidos, ordenar por fecha de vencimiento
       if (a.fechaFin == null && b.fechaFin == null) return 0;
       if (a.fechaFin == null) return 1;
       if (b.fechaFin == null) return -1;
-      return b.fechaFin!.compareTo(a.fechaFin!);
+      return a.fechaFin!.compareTo(b.fechaFin!);
     });
 
     return filtered;
   }
 
-  void _showContractDetails(Contract contract) {
-    ContractDetailsDialog.show(context, contract);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,20 +159,16 @@ class _ContractsScreenState extends State<ContractsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     _buildFilterChip('Todos', 'todos'),
                                     const SizedBox(width: 8),
-                                    _buildFilterChip('Vigentes', 'vigente'),
+                                    _buildFilterChip('Vigentes', 'true'),
                                     const SizedBox(width: 8),
-                                    _buildFilterChip('Vencidos', 'vencido'),
-                                    const SizedBox(width: 8),
-                                    _buildFilterChip('Suspendido', 'suspendido'),
+                                    _buildFilterChip('Vencidos', 'false'),
                                   ],
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -188,8 +189,6 @@ class _ContractsScreenState extends State<ContractsScreen> {
                                       return ContractCard(
                                         contract: contract,
                                         controller: _controller,
-                                        onTap: () =>
-                                            _showContractDetails(contract),
                                       );
                                     },
                                   ),

@@ -77,6 +77,41 @@ class ContractsController extends ChangeNotifier {
     return daysUntilExpiration >= 0 && daysUntilExpiration <= 30;
   }
 
+  /// Determina si el arrendatario tiene derecho a aumento anual
+  /// Solo es true si:
+  /// 1. Ha pasado al menos 1 año desde el primer contrato
+  /// 2. La fecha de terminación del contrato es en el mes del aniversario
+  bool tenantQualifiesForIncrease(Contract contract) {
+    // Verificar si el contrato tiene fecha de fin
+    if (contract.fechaFin == null) return false;
+    
+    // Encontrar el primer contrato (más antiguo) de este arrendatario
+    final tenantContracts = _contracts
+        .where((c) => c.tenantId == contract.tenantId)
+        .toList();
+    
+    if (tenantContracts.isEmpty) return false;
+    
+    // Ordenar por fecha de inicio y obtener el primero
+    tenantContracts.sort((a, b) => a.fechaInicio.compareTo(b.fechaInicio));
+    final firstContractStart = tenantContracts.first.fechaInicio;
+    
+    final now = DateTime.now();
+    
+    // 1. Verificar si ha pasado al menos 1 año completo
+    int yearsPassed = now.year - firstContractStart.year;
+    if (now.month < firstContractStart.month ||
+        (now.month == firstContractStart.month && 
+         now.day < firstContractStart.day)) {
+      yearsPassed--;
+    }
+    
+    if (yearsPassed < 1) return false;
+    
+    // 2. Verificar si la fecha de terminación es en el mes del aniversario
+    return contract.fechaFin!.month == firstContractStart.month;
+  }
+
   // Método para obtener información del apartamento y edificio del contrato
   String getApartmentInfo(Contract contract) {
     final apartmentId = contract.apartamentoId;

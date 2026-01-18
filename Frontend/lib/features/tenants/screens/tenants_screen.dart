@@ -181,7 +181,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
                         },
                         decoration: InputDecoration(
                           hintText: 'Buscar arrendatario...',
-                          fillColor: AppColors.card,
+                          fillColor: AppColors.background,
 
                           prefixIcon: const Icon(Icons.search),
                           border: OutlineInputBorder(
