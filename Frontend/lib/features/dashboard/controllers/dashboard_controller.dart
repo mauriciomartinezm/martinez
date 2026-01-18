@@ -10,21 +10,6 @@ import '../../tenants/controllers/tenant_payments_controller.dart';
 
 class DashboardController extends ChangeNotifier {
   final DataRepository _dataRepo = DataRepository.instance;
-  
-  static const List<String> _monthOrder = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ];
 
   bool _isLoading = false;
   List<PagoMensual> _pagos = [];

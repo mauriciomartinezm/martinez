@@ -14,7 +14,6 @@ class ContractsScreen extends StatefulWidget {
 class _ContractsScreenState extends State<ContractsScreen> {
   late ContractsController _controller;
   String _searchQuery = '';
-  bool _filterTodos = true;
   bool _filterVigentes = true;
   bool _filterVencidos = false;
   bool _filterByIncrease = false;
@@ -69,7 +68,6 @@ class _ContractsScreenState extends State<ContractsScreen> {
 
     // Ordenar: vigentes primero (por fecha próxima a vencer), luego vencidos
     filtered.sort((a, b) {
-      final now = DateTime.now();
       final aIsActive = a.estado == 'true';
       final bIsActive = b.estado == 'true';
 
