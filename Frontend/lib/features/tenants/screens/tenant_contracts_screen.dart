@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/models/tenant.dart';
 import '../../../core/models/contract.dart';
 import '../controllers/tenant_contracts_controller.dart';
-import '../../contracts/widgets/contract_detail_bottom_sheet.dart';
 
 class TenantContractsScreen extends StatefulWidget {
   final Tenant tenant;
@@ -36,30 +35,6 @@ class _TenantContractsScreenState extends State<TenantContractsScreen> {
     super.dispose();
   }
 
-  void _showContractDetails(Contract contract) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => ContractDetailBottomSheet(
-        contract: contract,
-        onDownloadPressed: () {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Descargando contrato...')),
-          );
-        },
-        onRenewPressed: () {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Abriendo renovación...')),
-          );
-        },
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -230,8 +205,6 @@ class _TenantContractsScreenState extends State<TenantContractsScreen> {
                                   return _ContractCard(
                                     contract: contract,
                                     controller: _controller,
-                                    onTap: () =>
-                                        _showContractDetails(contract),
                                   );
                                 },
                               ),
@@ -247,12 +220,10 @@ class _TenantContractsScreenState extends State<TenantContractsScreen> {
 class _ContractCard extends StatelessWidget {
   final Contract contract;
   final TenantContractsController controller;
-  final VoidCallback onTap;
 
   const _ContractCard({
     required this.contract,
     required this.controller,
-    required this.onTap,
   });
 
   @override
@@ -260,7 +231,6 @@ class _ContractCard extends StatelessWidget {
     final isExpiringSoon = controller.isContractExpiringSoon(contract);
 
     return GestureDetector(
-      onTap: onTap,
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
         elevation: 0,

@@ -15,6 +15,7 @@ class _ContractsScreenState extends State<ContractsScreen> {
   late ContractsController _controller;
   String _searchQuery = '';
   String _filterStatus = 'todos';
+  bool _filterByIncrease = false;
 
   @override
   void initState() {
@@ -37,6 +38,11 @@ class _ContractsScreenState extends State<ContractsScreen> {
     // Filtro por estado
     if (_filterStatus != 'todos') {
       filtered = filtered.where((contract) => contract.estado == _filterStatus).toList();
+    }
+
+    // Filtro por aumentos anuales
+    if (_filterByIncrease) {
+      filtered = filtered.where((contract) => _controller.tenantQualifiesForIncrease(contract)).toList();
     }
 
     // Filtro por búsqueda
@@ -159,15 +165,38 @@ class _ContractsScreenState extends State<ContractsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    _buildFilterChip('Todos', 'todos'),
-                                    const SizedBox(width: 8),
-                                    _buildFilterChip('Vigentes', 'true'),
-                                    const SizedBox(width: 8),
-                                    _buildFilterChip('Vencidos', 'false'),
-                                  ],
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      _buildFilterChip('Todos', 'todos'),
+                                      const SizedBox(width: 8),
+                                      _buildFilterChip('Vigentes', 'true'),
+                                      const SizedBox(width: 8),
+                                      _buildFilterChip('Vencidos', 'false'),
+                                      const SizedBox(width: 8),
+                                      FilterChip(
+                                        label: const Text('Con aumento'),
+                                        selected: _filterByIncrease,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            _filterByIncrease = selected;
+                                          });
+                                        },
+                                        backgroundColor: _filterByIncrease ? AppColors.primary : Colors.grey[200],
+                                        selectedColor: AppColors.primary,
+                                        side: _filterByIncrease 
+                                            ? BorderSide.none 
+                                            : BorderSide(color: Colors.grey[300]!),
+                                        labelStyle: TextStyle(
+                                          color: _filterByIncrease ? Colors.white : Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        showCheckmark: false,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                             ],
                           ),
