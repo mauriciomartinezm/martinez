@@ -14,7 +14,9 @@ class ContractsScreen extends StatefulWidget {
 class _ContractsScreenState extends State<ContractsScreen> {
   late ContractsController _controller;
   String _searchQuery = '';
-  String _filterStatus = 'todos';
+  bool _filterTodos = true;
+  bool _filterVigentes = true;
+  bool _filterVencidos = false;
   bool _filterByIncrease = false;
 
   @override
@@ -35,9 +37,16 @@ class _ContractsScreenState extends State<ContractsScreen> {
   List<Contract> get _filteredContracts {
     var filtered = _controller.contracts;
 
-    // Filtro por estado
-    if (_filterStatus != 'todos') {
-      filtered = filtered.where((contract) => contract.estado == _filterStatus).toList();
+    // Si ningún filtro de estado está seleccionado, mostrar todos
+    bool anyStatusFilterSelected = _filterVigentes || _filterVencidos;
+    
+    // Filtro por estado (solo si alguno está seleccionado)
+    if (anyStatusFilterSelected) {
+      filtered = filtered.where((contract) {
+        if (_filterVigentes && contract.estado == 'true') return true;
+        if (_filterVencidos && contract.estado == 'false') return true;
+        return false;
+      }).toList();
     }
 
     // Filtro por aumentos anuales
@@ -165,16 +174,30 @@ class _ContractsScreenState extends State<ContractsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
+ Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      _buildFilterChip('Todos', 'todos'),
                                       const SizedBox(width: 8),
-                                      _buildFilterChip('Vigentes', 'true'),
-                                      const SizedBox(width: 8),
-                                      _buildFilterChip('Vencidos', 'false'),
+                                      FilterChip(
+                                        label: const Text('Vigentes'),
+                                        selected: _filterVigentes,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            _filterVigentes = selected;
+                                          });
+                                        },
+                                        backgroundColor: _filterVigentes ? AppColors.primary : Colors.grey[200],
+                                        selectedColor: AppColors.primary,
+                                        side: _filterVigentes 
+                                            ? BorderSide.none 
+                                            : BorderSide(color: Colors.grey[300]!),
+                                        labelStyle: TextStyle(
+                                          color: _filterVigentes ? Colors.white : Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        showCheckmark: false,
+                                      ),
+
                                       const SizedBox(width: 8),
                                       FilterChip(
                                         label: const Text('Con aumento'),
@@ -195,9 +218,28 @@ class _ContractsScreenState extends State<ContractsScreen> {
                                         ),
                                         showCheckmark: false,
                                       ),
+                                                                            const SizedBox(width: 8),
+                                      FilterChip(
+                                        label: const Text('Vencidos'),
+                                        selected: _filterVencidos,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            _filterVencidos = selected;
+                                          });
+                                        },
+                                        backgroundColor: _filterVencidos ? AppColors.primary : Colors.grey[200],
+                                        selectedColor: AppColors.primary,
+                                        side: _filterVencidos 
+                                            ? BorderSide.none 
+                                            : BorderSide(color: Colors.grey[300]!),
+                                        labelStyle: TextStyle(
+                                          color: _filterVencidos ? Colors.white : Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        showCheckmark: false,
+                                      ),
                                     ],
                                   ),
-                                ),
                             ],
                           ),
                         ),
@@ -227,29 +269,6 @@ class _ContractsScreenState extends State<ContractsScreen> {
                     ),
         );
       },
-    );
-  }
-
-  Widget _buildFilterChip(String label, String value) {
-    final isSelected = _filterStatus == value;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _filterStatus = value;
-        });
-      },
-      backgroundColor: isSelected ? AppColors.primary : Colors.grey[200],
-      selectedColor: AppColors.primary,
-      side: isSelected 
-          ? BorderSide.none 
-          : BorderSide(color: Colors.grey[300]!),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black,
-        fontWeight: FontWeight.w500,
-      ),
-      showCheckmark: false,
     );
   }
 }
