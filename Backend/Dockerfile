@@ -1,11 +1,20 @@
-FROM ubuntu:latest AS build
-RUN apt-get update
-RUN apt-get install openjdk-25-jdk -y
-COPY . .
-RUN ./gradlew bootJar --no-daemon
+# ===== BUILD STAGE =====
+FROM maven:3.9.9-eclipse-temurin-25 AS build
+WORKDIR /app
 
-FROM openjdk:25-jdk-slim
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline
+
+COPY src src
+RUN ./mvnw clean package -DskipTests
+
+# ===== RUN STAGE =====
+FROM eclipse-temurin:25-jre
+WORKDIR /usr/app
 EXPOSE 8080
-COPY --from=build /app/build/libs/Backend-0.0.1-SNAPSHOT.jar /usr/app/Backend-0.0.1-SNAPSHOT.jar
 
-ENTRYPOINT [ "java", "-jar", "/usr/app/Backend-0.0.1-SNAPSHOT.jar" ]
+COPY --from=build /app/target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
