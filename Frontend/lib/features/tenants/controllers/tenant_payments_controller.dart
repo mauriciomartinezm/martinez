@@ -144,6 +144,29 @@ class TenantPaymentsController extends ChangeNotifier {
     return null;
   }
 
+  /// Fecha de aumento con día original (solo para mostrar en UI)
+  DateTime? getIncreaseDisplayDate() {
+    if (_firstContract == null) return null;
+    final contractStart = _firstContract!.fechaInicio;
+    final now = DateTime.now();
+
+    int yearsPassed = now.year - contractStart.year;
+    if (now.month < contractStart.month ||
+        (now.month == contractStart.month && now.day < contractStart.day)) {
+      yearsPassed--;
+    }
+
+    if (yearsPassed >= 1) {
+      return DateTime(
+        contractStart.year + yearsPassed,
+        contractStart.month,
+        contractStart.day,
+      );
+    }
+
+    return null;
+  }
+
   DateTime? getNextIncreaseDate() {
     if (_firstContract == null) return null;
     

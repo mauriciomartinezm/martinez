@@ -217,7 +217,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Se debió hacer aumento el ${_controller.formatDate(_controller.getIncreaseDate()!)}',
+                                    'Se debió hacer aumento el ${_controller.formatDate(_controller.getIncreaseDisplayDate() ?? _controller.getIncreaseDate()!)}',
                                     style: const TextStyle(
                                       fontSize: 13,
                                       color: Colors.orangeAccent,
