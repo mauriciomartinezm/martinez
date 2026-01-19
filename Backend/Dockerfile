@@ -1,6 +1,9 @@
-# ===== BUILD STAGE =====
-FROM openjdk:25-ea-21-jdk-slim AS build
+# ===== BUILD =====
+FROM amazoncorretto:25 AS build
 WORKDIR /app
+
+# Instalar Maven
+RUN yum install -y maven
 
 COPY pom.xml .
 COPY mvnw .
@@ -11,8 +14,8 @@ RUN ./mvnw dependency:go-offline
 COPY src src
 RUN ./mvnw clean package -DskipTests
 
-# ===== RUN STAGE =====
-FROM openjdk:25-ea-21-jre-slim
+# ===== RUN =====
+FROM amazoncorretto:21-alpine
 WORKDIR /usr/app
 EXPOSE 8080
 
