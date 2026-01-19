@@ -7,7 +7,8 @@ import '../models/pago_mensual.dart';
 import '../models/tenant.dart';
 import '../models/contract.dart';
 
-const String apiUrl = 'http://192.168.0.101:8080';
+//const String apiUrl = 'http://192.168.0.101:8080';
+const String apiUrl = 'https://martinez-api.onrender.com';
 
 Future<List<Building>> fetchBuildings() async {
   debugPrint('Fetching buildings from API...');
