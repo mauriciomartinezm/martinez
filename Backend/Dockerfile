@@ -16,7 +16,7 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # ===== RUN =====
-FROM amazoncorretto:21-alpine
+FROM amazoncorretto:25-alpine
 WORKDIR /usr/app
 EXPOSE 8080
 
