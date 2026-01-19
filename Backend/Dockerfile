@@ -1,20 +1,12 @@
-# ===== BUILD =====
-FROM amazoncorretto:25 AS build
+FROM maven:3.9.9-amazoncorretto-25 AS build
 WORKDIR /app
 
-# Instalar Maven
-RUN yum install -y maven
-
 COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
-RUN chmod +x mvnw
-RUN ./mvnw dependency:go-offline
+RUN mvn dependency:go-offline
 
 COPY src src
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
-# ===== RUN =====
 FROM amazoncorretto:21-alpine
 WORKDIR /usr/app
 EXPOSE 8080
