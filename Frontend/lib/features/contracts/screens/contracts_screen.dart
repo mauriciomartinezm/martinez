@@ -38,7 +38,7 @@ class _ContractsScreenState extends State<ContractsScreen> {
 
     // Si ningún filtro de estado está seleccionado, mostrar todos
     bool anyStatusFilterSelected = _filterVigentes || _filterVencidos;
-    
+
     // Filtro por estado (solo si alguno está seleccionado)
     if (anyStatusFilterSelected) {
       filtered = filtered.where((contract) {
@@ -50,19 +50,23 @@ class _ContractsScreenState extends State<ContractsScreen> {
 
     // Filtro por aumentos anuales
     if (_filterByIncrease) {
-      filtered = filtered.where((contract) => _controller.tenantQualifiesForIncrease(contract)).toList();
+      filtered = filtered
+          .where((contract) => _controller.tenantQualifiesForIncrease(contract))
+          .toList();
     }
 
     // Filtro por búsqueda
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
-          .where((contract) =>
-              contract.tenantName
-                  .toLowerCase()
-                  .contains(_searchQuery.toLowerCase()) ||
-              contract.apartamento
-                  .toLowerCase()
-                  .contains(_searchQuery.toLowerCase()))
+          .where(
+            (contract) =>
+                contract.tenantName.toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ) ||
+                contract.apartamento.toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ),
+          )
           .toList();
     }
 
@@ -85,13 +89,10 @@ class _ContractsScreenState extends State<ContractsScreen> {
     return filtered;
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (!mounted) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return ListenableBuilder(
@@ -115,8 +116,11 @@ class _ContractsScreenState extends State<ContractsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline,
-                          size: 48, color: Colors.red),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
                       const SizedBox(height: 16),
                       Text(_controller.errorMessage!),
                       const SizedBox(height: 16),
@@ -128,143 +132,150 @@ class _ContractsScreenState extends State<ContractsScreen> {
                   ),
                 )
               : _controller.contracts.isEmpty && !_controller.isLoading
-                  ? Center(
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.description_outlined,
+                        size: 64,
+                        color: Colors.grey[300],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No hay contratos',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: [
+                    // Search and filter
+                    Padding(
+                      padding: const EdgeInsets.all(16),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.description_outlined,
-                              size: 64,
-                              color: Colors.grey[300]),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No hay contratos',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
+                          TextField(
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Buscar contrato...',
+                              prefixIcon: const Icon(Icons.search),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const SizedBox(width: 8),
+                              FilterChip(
+                                label: const Text('Vigentes'),
+                                selected: _filterVigentes,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _filterVigentes = selected;
+                                  });
+                                },
+                                backgroundColor: _filterVigentes
+                                    ? AppColors.primary
+                                    : Colors.grey[200],
+                                selectedColor: AppColors.primary,
+                                side: _filterVigentes
+                                    ? BorderSide.none
+                                    : BorderSide(color: Colors.grey[300]!),
+                                labelStyle: TextStyle(
+                                  color: _filterVigentes
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                showCheckmark: false,
+                              ),
+
+                              const SizedBox(width: 8),
+                              FilterChip(
+                                label: const Text('Con aumento'),
+                                selected: _filterByIncrease,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _filterByIncrease = selected;
+                                  });
+                                },
+                                backgroundColor: _filterByIncrease
+                                    ? AppColors.primary
+                                    : Colors.grey[200],
+                                selectedColor: AppColors.primary,
+                                side: _filterByIncrease
+                                    ? BorderSide.none
+                                    : BorderSide(color: Colors.grey[300]!),
+                                labelStyle: TextStyle(
+                                  color: _filterByIncrease
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                showCheckmark: false,
+                              ),
+                              const SizedBox(width: 8),
+                              FilterChip(
+                                label: const Text('Vencidos'),
+                                selected: _filterVencidos,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _filterVencidos = selected;
+                                  });
+                                },
+                                backgroundColor: _filterVencidos
+                                    ? AppColors.primary
+                                    : Colors.grey[200],
+                                selectedColor: AppColors.primary,
+                                side: _filterVencidos
+                                    ? BorderSide.none
+                                    : BorderSide(color: Colors.grey[300]!),
+                                labelStyle: TextStyle(
+                                  color: _filterVencidos
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                showCheckmark: false,
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    )
-                  : Column(
-                      children: [
-                        // Search and filter
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              TextField(
-                                onChanged: (value) {
-                                  setState(() {
-                                    _searchQuery = value;
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Buscar contrato...',
-                                  prefixIcon: const Icon(Icons.search),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
- Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(width: 8),
-                                      FilterChip(
-                                        label: const Text('Vigentes'),
-                                        selected: _filterVigentes,
-                                        onSelected: (selected) {
-                                          setState(() {
-                                            _filterVigentes = selected;
-                                          });
-                                        },
-                                        backgroundColor: _filterVigentes ? AppColors.primary : Colors.grey[200],
-                                        selectedColor: AppColors.primary,
-                                        side: _filterVigentes 
-                                            ? BorderSide.none 
-                                            : BorderSide(color: Colors.grey[300]!),
-                                        labelStyle: TextStyle(
-                                          color: _filterVigentes ? Colors.white : Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        showCheckmark: false,
-                                      ),
-
-                                      const SizedBox(width: 8),
-                                      FilterChip(
-                                        label: const Text('Con aumento'),
-                                        selected: _filterByIncrease,
-                                        onSelected: (selected) {
-                                          setState(() {
-                                            _filterByIncrease = selected;
-                                          });
-                                        },
-                                        backgroundColor: _filterByIncrease ? AppColors.primary : Colors.grey[200],
-                                        selectedColor: AppColors.primary,
-                                        side: _filterByIncrease 
-                                            ? BorderSide.none 
-                                            : BorderSide(color: Colors.grey[300]!),
-                                        labelStyle: TextStyle(
-                                          color: _filterByIncrease ? Colors.white : Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        showCheckmark: false,
-                                      ),
-                                                                            const SizedBox(width: 8),
-                                      FilterChip(
-                                        label: const Text('Vencidos'),
-                                        selected: _filterVencidos,
-                                        onSelected: (selected) {
-                                          setState(() {
-                                            _filterVencidos = selected;
-                                          });
-                                        },
-                                        backgroundColor: _filterVencidos ? AppColors.primary : Colors.grey[200],
-                                        selectedColor: AppColors.primary,
-                                        side: _filterVencidos 
-                                            ? BorderSide.none 
-                                            : BorderSide(color: Colors.grey[300]!),
-                                        labelStyle: TextStyle(
-                                          color: _filterVencidos ? Colors.white : Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        showCheckmark: false,
-                                      ),
-                                    ],
-                                  ),
-                            ],
-                          ),
-                        ),
-                        // Contracts list
-                        Expanded(
-                          child: _controller.isLoading
-                              ? const Center(
-                                  child: CircularProgressIndicator())
-                              : RefreshIndicator(
-                                  onRefresh: () =>
-                                      _controller.refreshContracts(context),
-                                  child: ListView.builder(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    itemCount: _filteredContracts.length,
-                                    itemBuilder: (context, index) {
-                                      final contract = _filteredContracts[index];
-                                      return ContractCard(
-                                        contract: contract,
-                                        controller: _controller,
-                                      );
-                                    },
-                                  ),
-                                ),
-                        ),
-                      ],
                     ),
+                    // Contracts list
+                    Expanded(
+                      child: _controller.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: _filteredContracts.length,
+                              itemBuilder: (context, index) {
+                                final contract = _filteredContracts[index];
+                                return ContractCard(
+                                  contract: contract,
+                                  controller: _controller,
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
         );
       },
     );

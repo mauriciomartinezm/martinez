@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:martinez/core/theme/app_colors.dart';
 import '../../../core/models/pago_mensual.dart';
 import '../../../core/models/contract.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/data/data_repository.dart';
 import '../controllers/properties_controller.dart';
 import '../../tenants/widgets/payment_card.dart';
 import '../../tenants/controllers/tenant_payments_controller.dart';
@@ -40,7 +40,8 @@ class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
     if (widget.controller.selectedApartment == null) return;
 
     try {
-      final allContracts = await fetchContracts();
+      final repo = DataRepository.instance;
+      final allContracts = await repo.getContracts();
       final apartmentId = widget.controller.selectedApartment!.id;
       
       _activeContract = allContracts.firstWhere(
@@ -77,7 +78,8 @@ class _ApartmentDetailScreenState extends State<ApartmentDetailScreen> {
     });
 
     try {
-      final allPayments = await fetchPagos();
+      final repo = DataRepository.instance;
+      final allPayments = await repo.getPayments();
       final apartmentId = widget.controller.selectedApartment!.id;
       //debugPrint('Cargando pagos para el apartamento ID: $apartmentId');
       _apartmentPayments = allPayments

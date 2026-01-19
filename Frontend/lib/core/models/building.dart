@@ -12,4 +12,12 @@ class Building {
       nombre: json['nombre'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'direccion': direccion,
+      'id': id,
+      'nombre': nombre,
+    };
+  }
 }

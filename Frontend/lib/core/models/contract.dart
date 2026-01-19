@@ -95,6 +95,19 @@ class Contract {
       return _toString(json['apartamento']);
     }
 
+    String _normalizeBool(dynamic value) {
+      if (value == null) return '';
+      if (value is bool) return value ? 'true' : 'false';
+      final normalized = value.toString().toLowerCase().trim();
+      if (normalized == 'true' || normalized == '1' || normalized == 'activo' || normalized == 'vigente') {
+        return 'true';
+      }
+      if (normalized == 'false' || normalized == '0' || normalized == 'inactivo' || normalized == 'vencido') {
+        return 'false';
+      }
+      return '';
+    }
+
     return Contract(
       id: _toString(json['id']),
       tenantId: extractTenantId(),
@@ -108,7 +121,7 @@ class Contract {
           ? DateTime.parse(json['fechaFin'].toString())
           : null,
       montoMensual: _toDouble(json['montoMensual']),
-      estado: _toString(json['activo']),
+      estado: _normalizeBool(json['activo'] ?? json['estado']),
       documento: _toString(json['documento']),
     );
   }

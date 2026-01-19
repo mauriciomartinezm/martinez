@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Precarga todos los datos de la API al inicio
       await DataRepository.instance.preloadAll();
     } catch (e) {
-      // Si falla la precarga, los controllers individuales intentarán cargar sus datos
+      // Si falla la precarga, los datos se habrán cargado desde cache local si está disponible
       debugPrint('Error al precargar datos: $e');
     } finally {
       if (mounted) {
@@ -60,14 +60,45 @@ class _HomeScreenState extends State<HomeScreen> {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
+        final isOffline = DataRepository.instance.isOfflineMode;
+        
         return Scaffold(
-          body: IndexedStack(
-            index: controller.selectedTab,
-            children: const [
-              DashboardScreen(),
-              PropertiesScreen(),
-              TenantsScreen(),
-              ContractsScreen(),
+          body: Column(
+            children: [
+              // Banner de modo offline
+              if (isOffline)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: Colors.orange.shade100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.cloud_off, size: 16, color: Colors.orange.shade900),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Modo sin conexión - Mostrando datos guardados',
+                        style: TextStyle(
+                          color: Colors.orange.shade900,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              // Contenido principal
+              Expanded(
+                child: IndexedStack(
+                  index: controller.selectedTab,
+                  children: const [
+                    DashboardScreen(),
+                    PropertiesScreen(),
+                    TenantsScreen(),
+                    ContractsScreen(),
+                  ],
+                ),
+              ),
             ],
           ),
           bottomNavigationBar: AppBottomNavBar(

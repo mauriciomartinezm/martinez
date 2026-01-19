@@ -27,6 +27,17 @@ class ContratoArriendo {
       fechaFin: json['fechaFin'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'activo': activo,
+      'apartamento': apartamento.toJson(),
+      'arrendatario': arrendatario.toJson(),
+      'fechaInicio': fechaInicio,
+      'fechaFin': fechaFin,
+    };
+  }
 }
 
 class Arrendatario {
@@ -49,5 +60,14 @@ class Arrendatario {
       correo: json['correo'],
       telefono: json['telefono'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nombre': nombre,
+      'correo': correo,
+      'telefono': telefono,
+    };
   }
 }

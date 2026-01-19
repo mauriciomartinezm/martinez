@@ -198,24 +198,20 @@ class _TenantsScreenState extends State<TenantsScreen> {
                     Expanded(
                       child: _controller.isLoading
                           ? const Center(child: CircularProgressIndicator())
-                          : RefreshIndicator(
-                              onRefresh: () =>
-                                  _controller.refreshTenants(context),
-                              child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                itemCount: _filteredTenants.length,
-                                itemBuilder: (context, index) {
-                                  final tenant = _filteredTenants[index];
-                                  return TenantCard(
-                                    tenant: tenant,
-                                    isActive: _isTenantActive(tenant),
-                                    controller: _controller,
-                                    onTap: () => _showTenantDetails(tenant),
-                                  );
-                                },
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
+                              itemCount: _filteredTenants.length,
+                              itemBuilder: (context, index) {
+                                final tenant = _filteredTenants[index];
+                                return TenantCard(
+                                  tenant: tenant,
+                                  isActive: _isTenantActive(tenant),
+                                  controller: _controller,
+                                  onTap: () => _showTenantDetails(tenant),
+                                );
+                              },
                             ),
                     ),
                   ],

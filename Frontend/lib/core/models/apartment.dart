@@ -17,5 +17,12 @@ class Apartment {
     );
   }
 
-  toJson() {}
+  Map<String, dynamic> toJson() {
+    return {
+      'activa': activa,
+      'edificio': edificio.toJson(),
+      'id': id,
+      'piso': piso,
+    };
+  }
 }

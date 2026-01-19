@@ -264,12 +264,12 @@ class TenantPaymentsController extends ChangeNotifier {
   }
 
   double? _findRentOnOrBefore(DateTime targetDate) {
-    debugPrint('Buscando valor base para aumento anual ANTES de: $targetDate');    
+    //debugPrint('Buscando valor base para aumento anual ANTES de: $targetDate');    
     for (final pago in _payments) {
       final pagoDate = _parsePagoDate(pago);
       if (pagoDate == null) continue;
       if (_isBeforeMonth(pagoDate, targetDate)) {
-        debugPrint('Encontrado pago para baseline: ${pago.valorArriendo} en $pagoDate');
+        //debugPrint('Encontrado pago para baseline: ${pago.valorArriendo} en $pagoDate');
         return pago.valorArriendo;
       }
     }

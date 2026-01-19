@@ -39,4 +39,19 @@ class PagoMensual {
       contratoArriendo: ContratoArriendo.fromJson(json['contratoArriendo'] ?? {}),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'mes': mes,
+      'anio': anio,
+      'tipo': tipo,
+      'valorArriendo': valorArriendo,
+      'cuotaAdministracion': cuotaAdministracion,
+      'fondoInmueble': fondoInmueble,
+      'totalNeto': totalNeto,
+      'fechaPago': fechaPago,
+      'contratoArriendo': contratoArriendo.toJson(),
+    };
+  }
 }
