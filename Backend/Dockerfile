@@ -1,5 +1,5 @@
 # ===== BUILD STAGE =====
-FROM maven:3.9.9-eclipse-temurin-25 AS build
+FROM openjdk:25-ea-21-jdk-slim AS build
 WORKDIR /app
 
 COPY pom.xml .
@@ -12,7 +12,7 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # ===== RUN STAGE =====
-FROM eclipse-temurin:25-jre
+FROM openjdk:25-ea-21-jre-slim
 WORKDIR /usr/app
 EXPOSE 8080
 
